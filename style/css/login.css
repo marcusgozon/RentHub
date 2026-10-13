@@ -1,0 +1,103 @@
+@import url('https://fonts.googleapis.com/css2?family=Poppins:ital,wght@0,100;0,200;0,300;0,400;0,500;0,600;0,700;0,800;0,900;1,100;1,200;1,300;1,400;1,500;1,600;1,700;1,800;1,900&display=swap');
+
+:root {
+  --red: #c8102e;
+  --dark: #1a1a1a;
+  --light: #ffffff;
+  --gray: #666;
+  --border: #d4d4d4;
+}
+
+* {
+    font-family: "Poppins", Arial, sans-serif;
+    box-sizing: border-box;
+    margin: 0;
+    padding: 0;
+}
+
+body {
+    background-color: #f5f5f5;
+    color: #000000;
+    min-height: calc(100vh - 80px);
+  background: url("/assets/img/herobg.png") center/cover no-repeat;
+}
+
+/* ---------- Header ---------- */
+.site-header {
+  display: flex;
+  align-items: center;
+  gap: 24px;
+  padding: 8px 32px;
+  background: var(--light);
+  position: relative;
+  margin-bottom: 0px;
+}
+.logo img { width: 80px; height: 80px; }
+.logo { font-size: 1.6rem; font-weight: 800; color: var(--dark); text-decoration: none; }
+.logo span { color: var(--red); }
+nav { display: flex; gap: 20px; flex: 1; }
+nav a, .auth a { text-decoration: none; color: var(--dark); font-size: 0.95rem; font-weight: bold; }
+nav a:hover, .auth a:hover { color: var(--red); }
+.auth { display: flex; gap: 18px; }
+.menu-btn { display: none; background: none; border: none; font-size: 1.6rem; cursor: pointer; }
+
+.login-container {
+    margin:100px;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    align-items: center;
+    background-color: #ffffff;
+    border:solid 1px var(--dark);
+    border-radius: 30px;
+    padding: 40px;
+}
+
+h1 {
+    text-align: center;
+    margin-bottom: 36px;
+}
+
+label{
+  display: block;
+  font-size: 0.7rem;
+  font-weight: 700;
+  color: var(--gray);
+  margin: 14px 0 6px;
+}
+
+input {
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+    border-radius:10px;
+    width: 300px;
+    margin-bottom: 20px;
+}
+.login-button {
+    border-radius:20px;
+    justify-content: center;
+    align-items: center;
+    height:40px;
+    width:100px;
+    border: none;
+    background-color: var(--red);
+    color: var(--light);
+    cursor:pointer;
+    transition: all 0.3s ease;
+}
+
+.login-actions {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    width: 300px;
+    margin-top: 20px;
+    
+}
+
+.login-button:hover{ 
+  background: white;
+  color: var(--red);
+  border: 1px solid var(--red);
+}
