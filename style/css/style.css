@@ -19,7 +19,6 @@ body {
   color: var(--dark);
 }
 
-/* ---------- Header ---------- */
 .site-header {
   display: flex;
   align-items: center;
@@ -220,5 +219,17 @@ input:focus {
   color: var(--light);
   text-align: center;
   padding: 20px 0;
-  margin-top: 40px;
+  margin-top: 0;
 }
+
+.Ready-account {
+  text-align: center;
+  font-size: 0.85rem;
+  background-color: var(--border);
+  padding: 60px;
+  margin: 0; 
+}
+
+
+
+

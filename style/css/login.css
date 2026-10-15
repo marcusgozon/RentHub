@@ -1,11 +1,12 @@
 @import url('https://fonts.googleapis.com/css2?family=Poppins:ital,wght@0,100;0,200;0,300;0,400;0,500;0,600;0,700;0,800;0,900;1,100;1,200;1,300;1,400;1,500;1,600;1,700;1,800;1,900&display=swap');
 
 :root {
-  --red: #c8102e;
-  --dark: #1a1a1a;
-  --light: #ffffff;
+  --red: #261515;
+  --dark: #261515;
+  --light: #f3e4c9;
   --gray: #666;
-  --border: #d4d4d4;
+  --border: #f3e4c9;
+  --black: #000000;
 }
 
 * {
@@ -42,37 +43,45 @@ nav a:hover, .auth a:hover { color: var(--red); }
 .menu-btn { display: none; background: none; border: none; font-size: 1.6rem; cursor: pointer; }
 
 .login-container {
-    margin:100px;
+    width: 100%;
+    max-width: 420px;
+    margin: 60px auto;
     display: flex;
     flex-direction: column;
     justify-content: center;
     align-items: center;
-    background-color: #ffffff;
+    background: var(--border);
     border:solid 1px var(--dark);
     border-radius: 30px;
     padding: 40px;
 }
 
 h1 {
-    text-align: center;
-    margin-bottom: 36px;
+    align-items: center;
+    margin-bottom: 20px;
+    display: flex;
+    justify-content: center;
+    gap: 12px;
 }
+.logo {
+    width: 60px;
+    height: 60px;
+}
+
 
 label{
-  display: block;
   font-size: 0.7rem;
   font-weight: 700;
-  color: var(--gray);
-  margin: 14px 0 6px;
+  color: var(--black);
 }
 
+
 input {
-    display: flex;
-    flex-direction: column;
-    gap: 10px;
-    border-radius:10px;
-    width: 300px;
-    margin-bottom: 20px;
+    width: 100%;
+    height: 40px;
+    border: 1px solid var(--dark);
+    padding: 0 12px;
+    border-radius: 10px;
 }
 .login-button {
     border-radius:20px;
@@ -90,8 +99,6 @@ input {
 .login-actions {
     display: flex;
     justify-content: center;
-    align-items: center;
-    width: 300px;
     margin-top: 20px;
     
 }
@@ -100,4 +107,41 @@ input {
   background: white;
   color: var(--red);
   border: 1px solid var(--red);
+}
+
+/* ---------- Remember Me ---------- */
+
+.remember {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin-top: 20px;
+  margin-bottom: 10px;
+}
+
+.remember input[type="checkbox"] {
+  margin: 0;
+  padding: 0;
+  flex-shrink: 0;
+  width: 16px;
+  height: 16px;
+  border-radius: 4px;
+  border: 1px solid var(--black);
+  cursor: pointer;
+}
+
+.remember label {
+  display: flex;
+  align-items: center;
+  font-size: 0.85rem;
+  color: var(--black);
+  cursor: pointer;
+  line-height: 1;
+}
+
+footer {
+  text-align: center;
+  margin-top: 20px;
+  font-size: 0.85rem;
+  color: var(--border);
 }

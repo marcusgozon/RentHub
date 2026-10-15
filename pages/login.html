@@ -5,23 +5,36 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Log in - RentHub</title>
     <link rel="stylesheet" href="../style/css/login.css">
+    <script src="../script/login.js" defer></script>
 </head>
 <body>
 
 
     <div class="login-container">       
         <form action="login.html" method="post">
-        <h1>Log in</h1>
+        <h1>
+            <img class="logo" src="/assets/img/renthub_logo.png" alt="RentHub Logo">Log in
+        </h1>
             <label for="username">Username:</label>
-            <input type="text" id="username" name="username" required><br><br>
+            <input type="text" id="username" name="username" required>
     
             <label for="password">Password:</label>
-            <input type="password" id="password" name="password" required><br><br>
+            <input type="password" id="password" name="password" required>
             
+            <div class="remember">
+             <label for="remember">
+                <input type="checkbox" id="remember" name="remember">
+                Remember me
+             </label>
+            </div>
             <div class="login-actions">
                 <button class="login-button" type="submit">Log In</button>
             </div>
         </form>
     </div>
+
+    <footer class="site-footer">
+    <p>&copy; 2024 RentHub. All rights reserved.</p>
+  </footer>
 </body>
 </html>
