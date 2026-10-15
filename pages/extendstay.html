@@ -1,0 +1,75 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Extend stay - RentHub</title>
+  <link rel="stylesheet" href="../style/css/style.css" />
+  <link rel="stylesheet" href="../style/css/pages.css" />
+  <link rel="icon" type="image/png" href="../assets/img/renthub_logo.png" />
+</head>
+<body data-root="../">
+  <header class="site-header">
+    <a href="../index.html" class="logo"><img src="../assets/img/renthub_logo.png" alt="RentHub Logo" class="logoimg" /></a>
+    <button class="menu-btn" id="menuBtn" aria-label="Toggle menu">☰</button>
+    <nav id="nav">
+      <ul class="nav-links">
+        <li><a href="../index.html">Home</a></li>
+        <li><a href="browse.html">Browse</a></li>
+        <li><a href="myrentals.html">My Rentals</a></li>
+        <li><a href="extendstay.html">Extend Stay</a></li>
+      </ul>
+    </nav>
+    <div class="auth" id="auth">
+      <a href="login.html"><button class="btn-primary">Log In</button></a>
+      <a href="signup.html" class="signup"><button class="btn-primary">Sign Up</button></a>
+    </div>
+  </header>
+
+  <main class="page">
+    <h1>Extend your stay</h1>
+    <p class="sub">Choose a rental and how many months to add.</p>
+    <div class="panel" id="panel">
+      <label for="rental">RENTAL</label><select id="rental"></select>
+      <label for="extra">ADD MONTHS</label>
+      <select id="extra"></select>
+      <div class="summary" id="sum"></div>
+      <p class="error" id="err"></p>
+      <button class="btn-primary" id="go">Confirm extension</button>
+      <p class="ok" id="ok"></p>
+    </div>
+    <div class="empty" id="none" hidden><p>You have no active or upcoming rentals to extend.</p><a class="btn-primary" href="browse.html">Browse homes</a></div>
+  </main>
+  <footer class="site-footer"><p>&copy; 2024 RentHub. All rights reserved.</p></footer>
+  <script src="../scripts/script.js"></script>
+  <script>
+
+    if (RH.requireLogin()) {
+      const $ = s => document.querySelector(s);
+      const list = RH.myRentals().filter(r => RH.status(r) !== "Ended");
+      if (!list.length) { $("#panel").hidden = true; $("#none").hidden = false; }
+      else {
+        const want = Number(new URLSearchParams(location.search).get("id"));
+        const label = r => RH.esc(r.title) + " (ends " + RH.nice(RH.endDate(r)) + ")";
+        $("#rental").innerHTML = list.map(r => `<option value="${r.id}" ${r.id === want ? "selected" : ""}>${label(r)}</option>`).join("");
+        $("#extra").innerHTML = Array.from({length: 12}, (_, i) => `<option value="${i + 1}">${i + 1} month${i ? "s" : ""}</option>`).join("");
+        const cur = () => list.find(r => r.id === Number($("#rental").value));
+        function sum() {
+          const r = cur(), n = Number($("#extra").value);
+          $("#sum").innerHTML = `Current end date <strong>${RH.nice(RH.endDate(r))}</strong><br>New end date <strong>${RH.nice(RH.addMonths(r.moveIn, r.months + n))}</strong><br>Additional cost <strong>${RH.peso(r.price * n)}</strong>`;
+        }
+        $("#rental").addEventListener("input", () => { $("#ok").textContent = ""; sum(); });
+        $("#extra").addEventListener("input", () => { $("#ok").textContent = ""; sum(); });
+        sum();
+        $("#go").addEventListener("click", () => {
+          const r = cur(), n = Number($("#extra").value);
+          r.history = (r.history || []).concat({ added: n, on: RH.today() }); r.months += n;
+          RH.saveRental(r); sum();
+          $("#rental").selectedOptions[0].innerHTML = label(r);
+          $("#ok").textContent = "Done. Your stay now ends on " + RH.nice(RH.endDate(r)) + ".";
+        });
+      }
+    }
+  </script>
+</body>
+</html>

@@ -1,76 +1,81 @@
-<!DOCTYPE html>
+<!doctype html>
 <html lang="en">
-<head>
-  <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1" />
-  <title>RentHub - Find your next home</title>
-  <link rel="stylesheet" href="style/css/style.css" />
-  <link rel="icon" type="image/png" href="assets/img/renthub_logo.png" />
-</head>
-<body>
-  <header class="site-header">
-    <a href="index.html" class="logo"><img src="assets/img/renthub_logo.png" alt="RentHub Logo" class="logoimg" /></a>
-    <button class="menu-btn" id="menuBtn" aria-label="Toggle menu">☰</button>
-    <nav id="nav">
-      <a href="index.html">Home</a>
-      <a href="search.html">Browse</a>
-      <a href="#">My Rentals</a>
-      <a href="#">Extend Stay</a>
-    </nav>
-    <div class="auth" id="auth">
-      <a href="pages/login.html">
-        <button class="btn-primary">
-          Log In
-        </button>
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>RentHub - Find your next home</title>
+    <link rel="stylesheet" href="style/css/style.css" />
+    <link rel="icon" type="image/png" href="assets/img/renthub_logo.png" />
+  </head>
+  <body>
+    <header class="site-header">
+      <a href="index.html" class="logo"
+        ><img
+          src="assets/img/renthub_logo.png"
+          alt="RentHub Logo"
+          class="logoimg"
+      /></a>
+      <button class="menu-btn" id="menuBtn" aria-label="Toggle menu">☰</button>
+      <nav id="nav">
+        <ul class="nav-links">
+          <li><a href="index.html">Home</a></li>
+          <li><a href="pages/browse.html">Browse</a></li>
+          <li><a href="pages/myrentals.html">My Rentals</a></li>
+          <li><a href="pages/extendstay.html">Extend Stay</a></li>
+        </ul>
+      </nav>
+      <div class="auth" id="auth">
+        <a href="pages/login.html">
+          <button class="btn-primary">Log In</button>
         </a>
-      <a href="pages/signup.html" class="signup">
-        <button class="btn-primary">
-          Sign Up
-        </button>
-      </a>
-    </div>
-  </header>
-
-  <main>
-    <section class="hero">
-      <div class="search-card">
-        <h1>Find your RentHub home</h1>
-
-        <form id="searchForm" action="search.html" method="get">
-          <label for="location">LOCATION</label>
-          <input type="text" id="location" name="location"
-                 placeholder="City, barangay, or area" />
-
-          <div class="row">
-            <div>
-              <label for="moveIn">MOVE-IN DATE</label>
-              <input type="date" id="moveIn" name="moveIn" />
-            </div>
-            <div>
-              <label for="maxPrice">MAX PRICE / MONTH</label>
-              <input type="number" id="maxPrice" name="maxPrice"
-                     min="0" placeholder="e.g. 15000" />
-            </div>
-          </div>
-
-          <p class="error" id="formError"></p>
-          <button type="submit" class="btn-primary">Search Homes</button>
-        </form>
+        <a href="pages/signup.html" class="signup">
+          <button class="btn-primary">Sign Up</button>
+        </a>
       </div>
-    </section>
-  </main>
+    </header>
 
-  <div class="Ready-account">
-    <h3 style="font-family: Poppins;">
-      Already Renting in Renthub? <a href="pages/login.html">Log in</a>
-    </h3>
+    <main>
+      <section class="hero">
+        <div class="search-card">
+          <h1>Find your RentHub home</h1>
 
+          <form id="searchForm" action="pages/browse.html" method="get">
+            <label for="location">LOCATION</label>
+            <input
+              type="text"
+              id="location"
+              name="location"
+              placeholder="City, barangay, or area"
+            />
 
-  </div>
-  <footer class="site-footer">
-    <p>&copy; 2024 RentHub. All rights reserved.</p>
-  </footer>
+            <div class="row">
+              <div>
+                <label for="moveIn">MOVE-IN DATE</label>
+                <input type="date" id="moveIn" name="moveIn" />
+              </div>
+              <div>
+                <label for="maxPrice">MAX PRICE / MONTH</label>
+                <input
+                  type="number"
+                  id="maxPrice"
+                  name="maxPrice"
+                  min="0"
+                  placeholder="e.g. 15000"
+                />
+              </div>
+            </div>
 
-  <script src="js/home.js"></script>
-</body>
+            <p class="error" id="formError"></p>
+            <button type="submit" class="btn-primary">Search Homes</button>
+          </form>
+        </div>
+      </section>
+    </main>
+
+    <footer class="site-footer">
+      <p>&copy; 2024 RentHub. All rights reserved.</p>
+    </footer>
+
+    <script src="scripts/script.js"></script>
+  </body>
 </html>

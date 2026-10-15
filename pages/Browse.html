@@ -1,11 +1,97 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Browse - Renthub</title>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Browse homes - RentHub</title>
+  <link rel="stylesheet" href="../style/css/style.css" />
+  <link rel="stylesheet" href="../style/css/pages.css" />
+  <link rel="icon" type="image/png" href="../assets/img/renthub_logo.png" />
 </head>
-<body>
-    
+<body data-root="../">
+  <header class="site-header">
+    <a href="../index.html" class="logo"><img src="../assets/img/renthub_logo.png" alt="RentHub Logo" class="logoimg" /></a>
+    <button class="menu-btn" id="menuBtn" aria-label="Toggle menu">☰</button>
+    <nav id="nav">
+      <ul class="nav-links">
+        <li><a href="../index.html">Home</a></li>
+        <li><a href="browse.html">Browse</a></li>
+        <li><a href="myrentals.html">My Rentals</a></li>
+        <li><a href="extendstay.html">Extend Stay</a></li>
+      </ul>
+    </nav>
+    <div class="auth" id="auth">
+      <a href="login.html"><button class="btn-primary">Log In</button></a>
+      <a href="signup.html" class="signup"><button class="btn-primary">Sign Up</button></a>
+    </div>
+  </header>
+
+  <main class="page">
+    <h1>Browse homes</h1>
+    <p class="sub">Filter by area, budget, and type of place.</p>
+    <div class="filters">
+      <div><label for="fLoc">LOCATION</label><input id="fLoc" placeholder="City, barangay, or area" /></div>
+      <div><label for="fMax">MAX PRICE / MONTH</label><input id="fMax" type="number" min="0" placeholder="e.g. 15000" /></div>
+      <div><label for="fType">TYPE</label>
+        <select id="fType"><option value="">Any</option><option>Studio</option><option>Condo</option><option>Apartment</option><option>House</option><option>Bedspace</option></select></div>
+    </div>
+    <p class="count" id="count"></p>
+    <div class="cards" id="cards"></div>
+  </main>
+  <dialog id="rentDlg">
+    <h2 id="dlgTitle"></h2>
+    <p class="sub" id="dlgLoc"></p>
+    <label for="dMove">MOVE-IN DATE</label><input id="dMove" type="date" />
+    <label for="dMonths">LENGTH OF STAY</label>
+    <select id="dMonths"></select>
+    <div class="summary" id="dSum"></div>
+    <p class="error" id="dErr"></p>
+    <div class="actions"><button class="btn-secondary" id="dCancel" type="button">Cancel</button><button class="btn-primary" id="dOk" type="button">Confirm rental</button></div>
+  </dialog>
+  <footer class="site-footer"><p>&copy; 2024 RentHub. All rights reserved.</p></footer>
+  <script src="../scripts/script.js"></script>
+  <script>
+
+    const $ = s => document.querySelector(s);
+    const p = new URLSearchParams(location.search);
+    $("#fLoc").value = p.get("location") || ""; $("#fMax").value = p.get("maxPrice") || "";
+    const wantedMove = p.get("moveIn") || "";
+    let current = null;
+    function render() {
+      const loc = $("#fLoc").value.trim().toLowerCase(), max = Number($("#fMax").value) || Infinity, type = $("#fType").value;
+      const list = RH.LISTINGS.filter(l => (!loc || (l.title + " " + l.location).toLowerCase().includes(loc)) && l.price <= max && (!type || l.type === type));
+      $("#count").textContent = list.length + (list.length === 1 ? " home found" : " homes found");
+      $("#cards").innerHTML = list.length ? list.map(l => `
+        <article class="card"><span class="tag">${l.type}</span><h3>${l.title}</h3>
+          <p class="loc">${l.location}</p>
+          <p class="meta">${l.beds ? l.beds + " bed" : "Studio"} · ${l.baths} bath</p>
+          <p class="price">${RH.peso(l.price)} / month</p>
+          <div class="actions"><button class="btn-primary" data-id="${l.id}">Rent this home</button></div></article>`).join("")
+        : '<div class="empty" style="grid-column:1/-1"><p>No homes match those filters. Try a higher price or clear the location.</p></div>';
+    }
+    ["fLoc", "fMax", "fType"].forEach(id => $("#" + id).addEventListener("input", render));
+    $("#dMonths").innerHTML = Array.from({length: 12}, (_, i) => `<option value="${i + 1}">${i + 1} month${i ? "s" : ""}</option>`).join("");
+    function summary() {
+      const m = Number($("#dMonths").value), mv = $("#dMove").value;
+      $("#dSum").innerHTML = `Monthly rent <strong>${RH.peso(current.price)}</strong><br>Total for ${m} month${m > 1 ? "s" : ""} <strong>${RH.peso(current.price * m)}</strong>` + (mv ? `<br>Lease ends <strong>${RH.nice(RH.addMonths(mv, m))}</strong>` : "");
+    }
+    $("#cards").addEventListener("click", e => {
+      const b = e.target.closest("button[data-id]"); if (!b || !RH.requireLogin()) return;
+      current = RH.LISTINGS.find(l => l.id === Number(b.dataset.id));
+      $("#dlgTitle").textContent = current.title; $("#dlgLoc").textContent = current.location;
+      $("#dMove").min = RH.today(); $("#dMove").value = wantedMove >= RH.today() ? wantedMove : RH.today();
+      $("#dErr").textContent = ""; summary(); $("#rentDlg").showModal();
+    });
+    $("#dMove").addEventListener("input", summary); $("#dMonths").addEventListener("input", summary);
+    $("#dCancel").addEventListener("click", () => $("#rentDlg").close());
+    $("#dOk").addEventListener("click", () => {
+      const mv = $("#dMove").value;
+      if (!mv || mv < RH.today()) { $("#dErr").textContent = "Pick a move-in date from today onward."; return; }
+      RH.saveRental({ id: Date.now(), owner: RH.user().email, listingId: current.id, title: current.title, location: current.location,
+        price: current.price, moveIn: mv, months: Number($("#dMonths").value), history: [] });
+      location.href = "myrentals.html";
+    });
+    render();
+  </script>
 </body>
 </html>

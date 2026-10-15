@@ -1,0 +1,59 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>My rentals - RentHub</title>
+  <link rel="stylesheet" href="../style/css/style.css" />
+  <link rel="stylesheet" href="../style/css/pages.css" />
+  <link rel="icon" type="image/png" href="../assets/img/renthub_logo.png" />
+</head>
+<body data-root="../">
+  <header class="site-header">
+    <a href="../index.html" class="logo"><img src="../assets/img/renthub_logo.png" alt="RentHub Logo" class="logoimg" /></a>
+    <button class="menu-btn" id="menuBtn" aria-label="Toggle menu">☰</button>
+    <nav id="nav">
+      <ul class="nav-links">
+        <li><a href="../index.html">Home</a></li>
+        <li><a href="browse.html">Browse</a></li>
+        <li><a href="myrentals.html">My Rentals</a></li>
+        <li><a href="extendstay.html">Extend Stay</a></li>
+      </ul>
+    </nav>
+    <div class="auth" id="auth">
+      <a href="login.html"><button class="btn-primary">Log In</button></a>
+      <a href="signup.html" class="signup"><button class="btn-primary">Sign Up</button></a>
+    </div>
+  </header>
+
+  <main class="page">
+    <h1>My rentals</h1>
+    <p class="sub">Your current and past stays.</p>
+    <div class="cards" id="cards"></div>
+  </main>
+  <footer class="site-footer"><p>&copy; 2024 RentHub. All rights reserved.</p></footer>
+  <script src="../scripts/script.js"></script>
+  <script>
+
+    if (RH.requireLogin()) {
+      const list = RH.myRentals().sort((a, b) => b.moveIn.localeCompare(a.moveIn));
+      const box = document.getElementById("cards");
+      box.innerHTML = list.length ? list.map(r => { const s = RH.status(r); return `
+        <article class="card">
+          <div class="row-between"><h3>${RH.esc(r.title)}</h3><span class="badge ${s}">${s}</span></div>
+          <p class="loc">${RH.esc(r.location)}</p>
+          <p class="meta">${RH.nice(r.moveIn)} to ${RH.nice(RH.endDate(r))} (${r.months} mo)</p>
+          <p class="price">${RH.peso(r.price)} / month</p>
+          <div class="actions">
+            ${s !== "Ended" ? `<a class="btn-secondary" href="extendstay.html?id=${r.id}">Extend stay</a>` : ""}
+            <button class="btn-secondary" data-cancel="${r.id}">${s === "Ended" ? "Remove" : "Cancel"}</button>
+          </div></article>`; }).join("")
+        : '<div class="empty" style="grid-column:1/-1"><p>You haven\'t rented anything yet.</p><a class="btn-primary" href="browse.html">Browse homes</a></div>';
+      box.addEventListener("click", e => {
+        const b = e.target.closest("[data-cancel]"); if (!b) return;
+        if (confirm("Remove this rental from your list?")) { RH.removeRental(Number(b.dataset.cancel)); location.reload(); }
+      });
+    }
+  </script>
+</body>
+</html>

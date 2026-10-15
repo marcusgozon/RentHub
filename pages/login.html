@@ -1,40 +1,53 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Log in - RentHub</title>
-    <link rel="stylesheet" href="../style/css/login.css">
-    <script src="../script/login.js" defer></script>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Log in - RentHub</title>
+  <link rel="stylesheet" href="../style/css/style.css" />
+  <link rel="stylesheet" href="../style/css/pages.css" />
+  <link rel="icon" type="image/png" href="../assets/img/renthub_logo.png" />
 </head>
-<body>
-
-
-    <div class="login-container">       
-        <form action="login.html" method="post">
-        <h1>
-            <img class="logo" src="/assets/img/renthub_logo.png" alt="RentHub Logo">Log in
-        </h1>
-            <label for="username">Username:</label>
-            <input type="text" id="username" name="username" required>
-    
-            <label for="password">Password:</label>
-            <input type="password" id="password" name="password" required>
-            
-            <div class="remember">
-             <label for="remember">
-                <input type="checkbox" id="remember" name="remember">
-                Remember me
-             </label>
-            </div>
-            <div class="login-actions">
-                <button class="login-button" type="submit">Log In</button>
-            </div>
-        </form>
+<body data-root="../">
+  <header class="site-header">
+    <a href="../index.html" class="logo"><img src="../assets/img/renthub_logo.png" alt="RentHub Logo" class="logoimg" /></a>
+    <button class="menu-btn" id="menuBtn" aria-label="Toggle menu">☰</button>
+    <nav id="nav">
+      <ul class="nav-links">
+        <li><a href="../index.html">Home</a></li>
+        <li><a href="browse.html">Browse</a></li>
+        <li><a href="myrentals.html">My Rentals</a></li>
+        <li><a href="extendstay.html">Extend Stay</a></li>
+      </ul>
+    </nav>
+    <div class="auth" id="auth">
+      <a href="login.html"><button class="btn-primary">Log In</button></a>
+      <a href="signup.html" class="signup"><button class="btn-primary">Sign Up</button></a>
     </div>
+  </header>
 
-    <footer class="site-footer">
-    <p>&copy; 2024 RentHub. All rights reserved.</p>
-  </footer>
+  <main class="form-wrap">
+    <div class="search-card">
+      <h1>Welcome back</h1>
+      <form id="f">
+        <label for="email">EMAIL</label><input id="email" type="email" required autocomplete="email" />
+        <label for="pw">PASSWORD</label><input id="pw" type="password" required autocomplete="current-password" />
+        <p class="error" id="err"></p>
+        <button class="btn-primary" type="submit">Log In</button>
+      </form>
+      <p class="alt">New here? <a href="signup.html">Create an account</a></p>
+    </div>
+  </main>
+  <footer class="site-footer"><p>&copy; 2024 RentHub. All rights reserved.</p></footer>
+  <script src="../scripts/script.js"></script>
+  <script>
+
+    document.getElementById("f").addEventListener("submit", e => {
+      e.preventDefault();
+      const msg = RH.login(email.value, pw.value);
+      if (msg) { err.textContent = msg; return; }
+      location.href = new URLSearchParams(location.search).get("next") || "../index.html";
+    });
+  </script>
 </body>
 </html>
