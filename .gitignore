@@ -1,0 +1,14 @@
+# Python virtual environment: recreate it with `pip install -r backend/requirements.txt`
+.venv/
+venv/
+__pycache__/
+*.pyc
+
+# Secrets: copy .env.example to .env and keep .env private
+.env
+
+# Editor / OS files
+.vscode/
+.idea/
+.DS_Store
+Thumbs.db

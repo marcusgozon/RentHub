@@ -44,9 +44,6 @@ body {
   color: var(--dark);
   text-decoration: none;
 }
-.logo span {
-  color: var(--red);
-}
 nav {
   display: flex;
   gap: 20px;
@@ -92,7 +89,7 @@ main {
 .hero {
   flex: 1;
   min-height: 0;
-  background: url("../../assets/img/herobg.png") center/cover no-repeat;
+  background: url("../img/herobg.jpg") center/cover no-repeat;
   display: flex;
   align-items: center;
   padding: 0 6vw;
@@ -123,7 +120,6 @@ input {
   border-radius: 50px;
   padding: 12px;
   border: 1px solid var(--border);
-  border: solid 1px var(--border);
   font-size: 0.95rem;
 }
 input:focus {
@@ -149,29 +145,25 @@ input:focus {
   padding: 14px;
   background: var(--red);
   color: var(--light);
-  border: none;
+  /* Border is always present so hovering never changes the button's size
+     (previously it went from no border to 1px, which made it "shake"). */
+  border: 1px solid var(--red);
   border-radius: 30px;
   font-size: 1rem;
   font-weight: 700;
   cursor: pointer;
-  transition: all 0.3s ease;
+  transition: background-color 0.25s ease, color 0.25s ease, opacity 0.25s ease;
 }
 .btn-primary:hover {
   background: white;
   color: var(--red);
-  border: 1px solid var(--red);
 }
 
 .btn-primary:active {
   opacity: 0.8;
 }
 
-/* ---------- Results page ---------- */
-.results {
-  max-width: 1000px;
-  margin: 30px auto;
-  padding: 0 20px;
-}
+/* ---------- Cards ---------- */
 .cards {
   display: grid;
   grid-template-columns: repeat(auto-fill, minmax(260px, 1fr));
@@ -277,4 +269,11 @@ input:focus {
   margin-top: 0;
 }
 
-
+.btn-primary:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+.btn-primary:disabled:hover {
+  background: var(--red);
+  color: var(--light);
+}

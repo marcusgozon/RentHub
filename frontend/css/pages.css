@@ -92,7 +92,7 @@ main.page {
   font-size: 0.9rem;
   padding: 10px 16px;
   cursor: pointer;
-  transition: all 0.3s ease;
+  transition: background-color 0.25s ease, color 0.25s ease;
   width: 100%;
 }
 .btn-secondary:hover {

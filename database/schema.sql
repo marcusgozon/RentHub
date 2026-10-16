@@ -1,0 +1,12 @@
+CREATE DATABASE IF NOT EXISTS renthub_db
+  CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci;
+USE renthub_db;
+
+CREATE TABLE IF NOT EXISTS users (
+    id BIGINT UNSIGNED AUTO_INCREMENT PRIMARY KEY,
+    full_name VARCHAR(100) NOT NULL,
+    email VARCHAR(255) NOT NULL UNIQUE,
+    password_hash VARCHAR(255) NOT NULL,
+    role ENUM('tenant', 'landlord') NOT NULL DEFAULT 'tenant',
+    created_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP
+);

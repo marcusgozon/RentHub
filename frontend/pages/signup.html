@@ -1,0 +1,119 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>Sign up - RentHub</title>
+    <link rel="stylesheet" href="../css/style.css" />
+    <link rel="stylesheet" href="../css/pages.css" />
+    <link rel="icon" type="image/png" href="../img/renthub_logo.png" />
+  </head>
+  <body data-root="../">
+    <header class="site-header">
+      <a href="../index.html" class="logo"
+        ><img
+          src="../img/renthub_logo.png"
+          alt="RentHub Logo"
+          class="logoimg"
+      /></a>
+      <button class="menu-btn" id="menuBtn" aria-label="Toggle menu">☰</button>
+      <nav id="nav">
+        <ul class="nav-links">
+          <li><a href="../index.html">Home</a></li>
+          <li><a href="browse.html">Browse</a></li>
+          <li><a href="myrentals.html">My Rentals</a></li>
+          <li><a href="extendstay.html">Extend Stay</a></li>
+        </ul>
+      </nav>
+      <div class="auth" id="auth">
+        <a href="login.html"><button class="btn-primary">Log In</button></a>
+        <a href="signup.html" class="signup"
+          ><button class="btn-primary">Sign Up</button></a
+        >
+      </div>
+    </header>
+
+    <main class="form-wrap">
+      <div class="search-card">
+        <h1>Create your account</h1>
+        <form id="f">
+          <label for="name">FULL NAME</label
+          ><input id="name" required autocomplete="name" />
+          <label for="email">EMAIL</label
+          ><input id="email" type="email" required autocomplete="email" />
+          <label for="role">ACCOUNT TYPE</label
+          ><select id="role" required>
+            <option value="tenant">Tenant</option>
+            <option value="landlord">Landlord</option></select> 
+            <label for="pw">PASSWORD</label
+          ><input
+            id="pw"
+            type="password"
+            minlength="8"
+            required
+            autocomplete="new-password"
+          />
+          <label for="pw2">CONFIRM PASSWORD</label
+          ><input
+            id="pw2"
+            type="password"
+            required
+            autocomplete="new-password"
+          />
+          <p class="error" id="err"></p>
+          <button class="btn-primary" type="submit">Sign Up</button>
+        </form>
+        <p class="alt">
+          Already have an account? <a href="login.html">Log in</a>
+        </p>
+      </div>
+    </main>
+    <footer class="site-footer">
+      <p>&copy; 2024 RentHub. All rights reserved.</p>
+    </footer>
+    <script src="../js/script.js"></script>
+    <script>
+      const emailInput = document.getElementById("email");
+      const submitBtn = document.querySelector("#f button[type=submit]");
+      const TAKEN_MSG = "That email already has an account. Try logging in.";
+
+      // Warn as soon as the user leaves the email field, before they fill in the rest.
+      emailInput.addEventListener("blur", async () => {
+        if (!emailInput.value || !emailInput.checkValidity()) return;
+        if (await RH.emailTaken(emailInput.value)) {
+          err.textContent = TAKEN_MSG;
+          submitBtn.disabled = true;
+        }
+      });
+      emailInput.addEventListener("input", () => {
+        if (submitBtn.disabled) {
+          err.textContent = "";
+          submitBtn.disabled = false;
+        }
+      });
+
+      document.getElementById("f").addEventListener("submit", async (e) => {
+        e.preventDefault();
+        if (
+          document.getElementById("pw").value !==
+          document.getElementById("pw2").value
+        ) {
+          err.textContent = "Passwords don't match.";
+          return;
+        }
+        const msg = await RH.signup(
+          document.getElementById("name").value,
+          document.getElementById("email").value,
+          document.getElementById("pw").value,
+          document.getElementById("role").value,
+        );
+        if (msg) {
+          err.textContent = msg;
+          return;
+        }
+        location.href =
+          new URLSearchParams(location.search).get("next") || "browse.html";
+      });
+    </script>
+  </body>
+</html>

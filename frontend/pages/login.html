@@ -3,14 +3,14 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1" />
-  <title>Sign up - RentHub</title>
-  <link rel="stylesheet" href="../style/css/style.css" />
-  <link rel="stylesheet" href="../style/css/pages.css" />
-  <link rel="icon" type="image/png" href="../assets/img/renthub_logo.png" />
+  <title>Log in - RentHub</title>
+  <link rel="stylesheet" href="../css/style.css" />
+  <link rel="stylesheet" href="../css/pages.css" />
+  <link rel="icon" type="image/png" href="../img/renthub_logo.png" />
 </head>
 <body data-root="../">
   <header class="site-header">
-    <a href="../index.html" class="logo"><img src="../assets/img/renthub_logo.png" alt="RentHub Logo" class="logoimg" /></a>
+    <a href="../index.html" class="logo"><img src="../img/renthub_logo.png" alt="RentHub Logo" class="logoimg" /></a>
     <button class="menu-btn" id="menuBtn" aria-label="Toggle menu">☰</button>
     <nav id="nav">
       <ul class="nav-links">
@@ -28,28 +28,25 @@
 
   <main class="form-wrap">
     <div class="search-card">
-      <h1>Create your account</h1>
+      <h1>Welcome back</h1>
       <form id="f">
-        <label for="name">FULL NAME</label><input id="name" required autocomplete="name" />
         <label for="email">EMAIL</label><input id="email" type="email" required autocomplete="email" />
-        <label for="pw">PASSWORD</label><input id="pw" type="password" minlength="6" required autocomplete="new-password" />
-        <label for="pw2">CONFIRM PASSWORD</label><input id="pw2" type="password" required autocomplete="new-password" />
+        <label for="pw">PASSWORD</label><input id="pw" type="password" required autocomplete="current-password" />
         <p class="error" id="err"></p>
-        <button class="btn-primary" type="submit">Sign Up</button>
+        <button class="btn-primary" type="submit">Log In</button>
       </form>
-      <p class="alt">Already have an account? <a href="login.html">Log in</a></p>
+      <p class="alt">New here? <a href="signup.html">Create an account</a></p>
     </div>
   </main>
   <footer class="site-footer"><p>&copy; 2024 RentHub. All rights reserved.</p></footer>
-  <script src="../scripts/script.js"></script>
+  <script src="../js/script.js"></script>
   <script>
 
-    document.getElementById("f").addEventListener("submit", e => {
+    document.getElementById("f").addEventListener("submit", async e => {
       e.preventDefault();
-      if (pw.value !== pw2.value) { err.textContent = "Passwords don't match."; return; }
-      const msg = RH.signup(name.value, email.value, pw.value);
+      const msg = await RH.login(document.getElementById("email").value, document.getElementById("pw").value);
       if (msg) { err.textContent = msg; return; }
-      location.href = new URLSearchParams(location.search).get("next") || "browse.html";
+      location.href = new URLSearchParams(location.search).get("next") || "../index.html";
     });
   </script>
 </body>

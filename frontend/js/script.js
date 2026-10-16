@@ -1,4 +1,4 @@
-/* RentHub shared script: data, auth, header behaviour. Data lives in localStorage (demo, no backend needed). */
+/* RentHub shared script: auth (Flask + MySQL), header behaviour, and demo rental data (localStorage). */
 (function () {
   const root = document.body.dataset.root || "";
   const $ = (s, r = document) => r.querySelector(s);
@@ -32,7 +32,6 @@
   const esc = s => String(s).replace(/[&<>"']/g, c => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" }[c]));
 
   const user = () => store.get("rh_session", null);
-  const users = () => store.get("rh_users", []);
   const allRentals = () => store.get("rh_rentals", []);
   const myRentals = () => { const u = user(); return u ? allRentals().filter(r => r.owner === u.email) : []; };
   const saveRental = r => { const all = allRentals().filter(x => x.id !== r.id); all.push(r); store.set("rh_rentals", all); };
@@ -47,21 +46,57 @@
     return false;
   }
 
-  function signup(name, email, password) {
-    email = email.trim().toLowerCase();
-    if (users().some(u => u.email === email)) return "That email already has an account. Try logging in.";
-    store.set("rh_users", users().concat({ name: name.trim(), email, password }));
-    store.set("rh_session", { name: name.trim(), email });
-    return null;
+  async function signup(name, email, password, role = "tenant") {
+    try {
+      const response = await fetch("/api/register", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        credentials: "same-origin",
+        body: JSON.stringify({ name, email, password, role })
+      });
+      const data = await response.json();
+      if (!response.ok) return data.error || "Could not create account.";
+      store.set("rh_session", { name: data.user.name, email: data.user.email, role: data.user.role });
+      return null;
+    } catch (error) {
+      return "Can't reach the backend. Make sure the RentHub Python server is running.";
+    }
   }
-  function login(email, password) {
-    email = email.trim().toLowerCase();
-    const u = users().find(x => x.email === email && x.password === password);
-    if (!u) return "Email or password is incorrect.";
-    store.set("rh_session", { name: u.name, email });
-    return null;
+
+  // Asks the backend whether an account with this email already exists.
+  async function emailTaken(email) {
+    email = String(email || "").trim();
+    if (!email) return false;
+    try {
+      const response = await fetch("/api/check-email?email=" + encodeURIComponent(email), { credentials: "same-origin" });
+      if (!response.ok) return false;
+      return Boolean((await response.json()).exists);
+    } catch (error) {
+      return false; // Can't reach the server: the register call will report the real problem.
+    }
   }
-  function logout() { localStorage.removeItem("rh_session"); location.href = root + "index.html"; }
+
+  async function login(email, password) {
+    try {
+      const response = await fetch("/api/login", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        credentials: "same-origin",
+        body: JSON.stringify({ email, password })
+      });
+      const data = await response.json();
+      if (!response.ok) return data.error || "Login failed.";
+      store.set("rh_session", { name: data.user.name, email: data.user.email, role: data.user.role });
+      return null;
+    } catch (error) {
+      return "Can't reach the backend. Make sure the RentHub Python server is running.";
+    }
+  }
+  async function logout() {
+    try { await fetch("/api/logout", { method: "POST", credentials: "same-origin" }); } catch (error) {}
+    localStorage.removeItem("rh_session");
+    location.href = root + "index.html";
+  }
 
   // Header: mobile menu, active link, logged-in state
   const menuBtn = $("#menuBtn");
@@ -112,5 +147,5 @@
     else if (mp && Number(mp) <= 0) { e.preventDefault(); err.textContent = "Enter a price above 0."; }
   });
 
-  window.RH = { LISTINGS, peso, today, addMonths, nice, esc, user, myRentals, saveRental, removeRental, endDate, status, requireLogin, signup, login, root };
+  window.RH = { LISTINGS, peso, today, addMonths, nice, esc, user, myRentals, saveRental, removeRental, endDate, status, requireLogin, signup, login, emailTaken, root };
 })();
