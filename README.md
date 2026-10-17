@@ -7,7 +7,7 @@ This version connects your existing HTML/CSS/JavaScript website to a Python Flas
 ```
 RentHub/
 ├── backend/
-│   ├── app.py              Flask server + API (register, login, check-email, logout)
+│   ├── app.py              Flask server + API (register, login, 2FA, check-email, logout)
 │   └── requirements.txt
 ├── database/
 │   └── schema.sql          Creates renthub_db and the users table
@@ -34,27 +34,16 @@ install step below and is listed in `.gitignore`, so never copy or zip it.
 
 The database stores a full name, unique email, password hash, role (tenant/landlord), and account creation date. It does **not** store a plain-text password.
 
-## 2. Configure the MySQL connection
+## 2. Configure your secrets (`.env`)
 
-The app (`backend/app.py`) reads these environment variables:
-- `DB_HOST` (default `localhost`)
-- `DB_PORT` (default `3306`)
-- `DB_USER` (default `root`)
-- `DB_PASSWORD` (your local MySQL password)
-- `DB_NAME` (default `renthub_db`)
+Secrets are read from a `.env` file in the project root, loaded automatically when the server starts. No `$env:` commands needed.
 
-In Windows PowerShell, from the project root, set them for the current terminal session (replace the example password):
+1. Copy `.env.example` to `.env`.
+2. Fill in `DB_PASSWORD`, `RENTHUB_SECRET_KEY`, `GMAIL_USER` and `GMAIL_APP_PASSWORD`.
 
-```powershell
-$env:DB_HOST="localhost"
-$env:DB_PORT="3306"
-$env:DB_USER="root"
-$env:DB_PASSWORD="YOUR_MYSQL_PASSWORD"
-$env:DB_NAME="renthub_db"
-$env:RENTHUB_SECRET_KEY="replace-this-with-a-long-random-secret"
-```
+`DB_HOST`, `DB_PORT`, `DB_USER` and `DB_NAME` default to `localhost`, `3306`, `root` and `renthub_db`, so only change them if yours differ.
 
-Do not share or commit your real password or secret key. If you prefer a `.env` file, install `python-dotenv` and load it in `app.py`; this starter intentionally uses environment variables directly.
+`.env` is listed in `.gitignore` and is never pushed to GitHub. **On a new device, clone the repo, copy your `.env` file into the project root, and continue from step 3.** Real environment variables, if set, override the file.
 
 ## 3. Install and run the backend
 
@@ -80,9 +69,10 @@ Open **http://127.0.0.1:5000**. Do not open the HTML by double-clicking it or us
 
 1. Open Sign Up and create a test account.
 2. Use a password of at least 8 characters.
-3. Try signing up again with the same email. You should see "That email already has an account." and no second row is created.
-4. Try logging out and logging back in.
-5. In MySQL Workbench, refresh `renthub_db` > Tables > `users`, then select the table and view its rows. The `password_hash` column should look like a long hash, not your actual password.
+3. After you submit the sign-up form you should receive a 6-digit code by email. The account only appears in `users` after you enter it.
+4. Try signing up again with the same email. You should see "That email already has an account." and no second row is created.
+5. Try logging out and logging back in (you will get a login code too).
+6. In MySQL Workbench, refresh `renthub_db` > Tables > `users`, then select the table and view its rows. The `password_hash` column should look like a long hash, not your actual password.
 
 ## Important current limitations
 
@@ -98,3 +88,23 @@ Registration is blocked for an email that already has an account, in three layer
 1. **Signup form**: when you leave the email field, the page calls `GET /api/check-email` and shows a warning right away.
 2. **`email_exists()` in `backend/app.py`**: `/api/register` checks it before inserting. Emails are trimmed and lower-cased, so `Juan@Mail.com` and `juan@mail.com` are the same account. It returns HTTP 409.
 3. **`UNIQUE` constraint on `users.email`**: the database itself rejects a duplicate even if two signups happen at the same instant.
+
+## Two-factor codes (sign-up and login, 6 digits by Gmail)
+
+The server emails a 6-digit code in two places, and uses the same Gmail setup for both:
+
+- **Sign-up:** the account is **not created** until the emailed code is entered. Until then the details wait in the `pending_signups` table, so nobody can register an email address they don't own.
+- **Login:** after a correct email and password, the user is only logged in once they enter the code.
+
+**One-time setup**
+
+1. Re-run `database/schema.sql` in MySQL Workbench. It is safe to re-run and adds the `login_codes` and `pending_signups` tables.
+2. In the Google account that will *send* the emails, turn on 2-Step Verification, then create an App password (Google Account > Security > App passwords).
+3. Put the sender details in your `.env` file (`GMAIL_USER` and `GMAIL_APP_PASSWORD`), then start the server as usual. Never put the app password in code, in this README, or in Git. If it leaks, delete it in your Google account and create a new one.
+
+**How it works**
+
+- The code is random, valid for 10 minutes, and stored only as a keyed hash.
+- 5 wrong guesses lock the code until a new one is requested. "Resend code" has a 30-second cooldown, which also stops the sign-up form being used to flood someone's inbox.
+- If Gmail fails (wrong app password, etc.) nothing is saved, so the user can simply try again.
+- A user who has not entered the code has no session, so protected actions stay locked.

@@ -2,14 +2,69 @@
 select {
   width: 100%;
   border-radius: 50px;
-  padding: 12px;
-  border: 1px solid var(--dark);
-  background: #fff;
+  padding: 12px 42px 12px 18px;
+  border: 1px solid var(--line);
+  background: #fff url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='14' height='14' viewBox='0 0 24 24' fill='none' stroke='%23261515' stroke-width='3' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='M6 9l6 6 6-6'/%3E%3C/svg%3E") no-repeat right 18px center / 14px;
+  -webkit-appearance: none;
+  appearance: none;
+  color: var(--dark);
   font: inherit;
   font-size: 0.95rem;
+  cursor: pointer;
+  transition: border-color 0.2s ease, box-shadow 0.25s ease;
+}
+select:hover {
+  border-color: rgba(38, 21, 21, 0.35);
+}
+select:focus {
+  outline: none;
+  border-color: var(--dark);
+  box-shadow: 0 0 0 4px rgba(38, 21, 21, 0.14);
 }
 input {
   background: #fff;
+}
+
+body {
+  margin: 0;
+  padding: 0;
+  min-height: 100vh;
+  /* Ensures your actual text and content stay on top of the background */
+  position: relative; 
+}
+
+body::before {
+  content: "";
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  /* Your original background image */
+  background: url("../img/hallway.jpg") center/cover no-repeat; 
+  
+  /* Adds a dark tint (black at 40% opacity) */
+  background-color: rgba(0, 0, 0, 0.4); 
+  background-blend-mode: overlay;
+  
+  /* Adds the blur effect */
+  filter: blur(8px); 
+  
+  /* Scales up slightly to hide white/blurry edges caused by the filter */
+  transform: scale(1.05); 
+  
+  /* Places the background behind your content */
+  z-index: -1; 
+}
+
+/* Login / sign-up: the blurred background drifts very slowly */
+@keyframes bgDrift {
+  from { transform: scale(1.05) translate3d(0, 0, 0); }
+  to   { transform: scale(1.14) translate3d(-1.2%, -1%, 0); }
+}
+body:has(.form-wrap)::before {
+  animation: bgDrift 28s ease-in-out infinite alternate;
+  will-change: transform;
 }
 
 main.page {
@@ -18,32 +73,44 @@ main.page {
 .page {
   width: 100%;
   max-width: 1000px;
-  margin: 30px auto;
+  margin: 34px auto;
   padding: 0 20px;
   flex: 1;
+  animation: fadeUp 0.6s var(--ease) both;
 }
 .page h1 {
-  font-size: 1.6rem;
+  color:lightgray;
+  font-size: 1.8rem;
+  letter-spacing: -0.01em;
   margin-bottom: 4px;
+  text-shadow: 0 2px 14px rgba(0, 0, 0, 0.35);
 }
 .sub {
-  color: var(--gray);
+  color: var(--light);
   font-size: 0.9rem;
+}
+/* .sub sits on cream cards/dialogs too, where cream text would be invisible */
+.search-card .sub,
+.panel .sub,
+dialog .sub {
+  color: var(--gray);
 }
 .filters {
   display: grid;
   align-items: start;
   grid-template-columns: 2fr 1fr 1fr;
-  gap: 12px;
+  gap: 14px;
   background: var(--light);
-  padding: 18px 22px 22px;
-  border-radius: 20px;
-  margin: 20px 0;
+  padding: 18px 24px 24px;
+  border-radius: 22px;
+  box-shadow: var(--shadow-md);
+  margin: 22px 0;
 }
 .filters label {
   margin-top: 0;
 }
 .count {
+  color:var(--light);
   margin: 8px 0 0;
   font-weight: 600;
 }
@@ -52,6 +119,7 @@ main.page {
   background: #fff;
   display: flex;
   flex-direction: column;
+  border: none;
 }
 .card .tag {
   align-self: flex-start;
@@ -69,7 +137,7 @@ main.page {
 }
 .card .actions {
   margin-top: auto;
-  padding-top: 12px;
+  padding-top: 14px;
   display: flex;
   gap: 10px;
 }
@@ -92,12 +160,29 @@ main.page {
   font-size: 0.9rem;
   padding: 10px 16px;
   cursor: pointer;
-  transition: background-color 0.25s ease, color 0.25s ease;
+  transition: background-color 0.25s ease, color 0.25s ease, transform 0.25s var(--ease),
+    box-shadow 0.25s ease;
   width: 100%;
 }
 .btn-secondary:hover {
   background: var(--dark);
   color: var(--light);
+  transform: translateY(-2px);
+  box-shadow: 0 8px 18px rgba(38, 21, 21, 0.22);
+}
+.btn-secondary:active {
+  transform: translateY(0) scale(0.98);
+  box-shadow: none;
+}
+.btn-secondary:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+.btn-secondary:disabled:hover {
+  background: transparent;
+  color: var(--dark);
+  transform: none;
+  box-shadow: none;
 }
 .badge {
   font-size: 0.75rem;
@@ -105,6 +190,9 @@ main.page {
   padding: 3px 12px;
   border-radius: 20px;
   background: var(--light);
+}
+.badge.Upcoming {
+  background: #fbefc4;
 }
 .badge.Active {
   background: #d7ecd2;
@@ -123,9 +211,11 @@ main.page {
 .empty {
   text-align: center;
   padding: 50px 20px;
-  border: 1px dashed var(--dark);
-  border-radius: 20px;
+  background: rgba(243, 228, 201, 0.94);
+  border: 1px dashed rgba(38, 21, 21, 0.45);
+  border-radius: 22px;
   margin-top: 20px;
+  box-shadow: var(--shadow-sm);
 }
 .empty p {
   margin-bottom: 14px;
@@ -141,7 +231,7 @@ main.page {
   display: flex;
   align-items: flex-start;
   justify-content: center;
-  padding: 40px 16px;
+  padding: 44px 16px;
   flex: 1;
 }
 .form-wrap .search-card .btn-primary,
@@ -156,13 +246,21 @@ main.page {
 .alt a {
   color: var(--dark);
   font-weight: 700;
+  text-decoration: none;
+  background: linear-gradient(currentColor, currentColor) no-repeat left bottom / 100% 2px;
+  transition: background-size 0.35s var(--ease);
+}
+.alt a:hover {
+  background-size: 0% 2px;
+  background-position: right bottom;
 }
 .panel {
   background: var(--light);
-  border-radius: 20px;
-  padding: 24px;
+  border-radius: 22px;
+  padding: 26px;
   max-width: 520px;
   margin-top: 20px;
+  box-shadow: var(--shadow-md);
 }
 .summary {
   margin-top: 16px;
@@ -183,18 +281,30 @@ main.page {
   min-height: 1.2em;
 }
 
+/* ---------- Dialog (rent a home) ---------- */
+@keyframes dialogIn {
+  from { opacity: 0; transform: translateY(22px) scale(0.95); }
+  to   { opacity: 1; transform: none; }
+}
 dialog {
   margin: auto;
   border: none;
-  border-radius: 20px;
+  border-radius: 22px;
   padding: 26px;
   width: min(420px, 92vw);
   background: var(--light);
   color: var(--dark);
-  box-shadow: 0 10px 30px rgba(0, 0, 0, 0.35);
+  box-shadow: var(--shadow-lg);
+}
+dialog[open] {
+  animation: dialogIn 0.4s var(--ease) both;
 }
 dialog::backdrop {
   background: rgba(38, 21, 21, 0.55);
+  backdrop-filter: blur(4px);
+}
+dialog[open]::backdrop {
+  animation: fadeIn 0.3s ease both;
 }
 dialog h2 {
   font-size: 1.2rem;
@@ -256,6 +366,7 @@ dialog .actions .btn-primary {
   border-radius: 50%;
   color: var(--gray);
   cursor: pointer;
+  transition: color 0.2s ease, background-color 0.2s ease;
 }
 .pw-toggle:hover {
   color: var(--dark);
@@ -263,4 +374,134 @@ dialog .actions .btn-primary {
 }
 .pw-toggle:focus-visible {
   outline: 2px solid var(--dark);
+}
+
+/* =====================================================================
+   Login / Sign-up: keyframe animations
+   ===================================================================== */
+@keyframes grow {
+  from { width: 0; }
+}
+@keyframes fieldIn {
+  from { opacity: 0; transform: translateY(14px); }
+  to   { opacity: 1; transform: none; }
+}
+@keyframes shake {
+  0%, 100% { transform: translateX(0); }
+  20%      { transform: translateX(-7px); }
+  40%      { transform: translateX(6px); }
+  60%      { transform: translateX(-4px); }
+  80%      { transform: translateX(3px); }
+}
+@keyframes codePop {
+  0%   { transform: scale(0.94); box-shadow: 0 0 0 0 rgba(38, 21, 21, 0.35); }
+  60%  { transform: scale(1.03); box-shadow: 0 0 0 10px rgba(38, 21, 21, 0); }
+  100% { transform: scale(1);    box-shadow: 0 0 0 0 rgba(38, 21, 21, 0); }
+}
+@keyframes sheen {
+  from { transform: translateX(-120%) skewX(-20deg); }
+  to   { transform: translateX(260%) skewX(-20deg); }
+}
+
+/* the card rises in (cardIn is defined in style.css) */
+.form-wrap .search-card {
+  animation: cardIn 0.75s var(--ease) both;
+}
+/* a short accent bar grows under the title */
+.form-wrap .search-card h1 {
+  margin-bottom: 8px;
+}
+.form-wrap .search-card h1::after {
+  content: "";
+  display: block;
+  height: 4px;
+  width: 46px;
+  border-radius: 4px;
+  background: var(--dark);
+  margin-top: 10px;
+  animation: grow 0.8s var(--ease) 0.35s backwards;
+}
+/* fields appear one after another; the code step re-plays this when it is revealed */
+.form-wrap form > * {
+  animation: fieldIn 0.55s var(--ease) backwards;
+}
+.form-wrap form > *:nth-child(1) { animation-delay: 0.155s; }
+.form-wrap form > *:nth-child(2) { animation-delay: 0.190s; }
+.form-wrap form > *:nth-child(3) { animation-delay: 0.225s; }
+.form-wrap form > *:nth-child(4) { animation-delay: 0.260s; }
+.form-wrap form > *:nth-child(5) { animation-delay: 0.295s; }
+.form-wrap form > *:nth-child(6) { animation-delay: 0.330s; }
+.form-wrap form > *:nth-child(7) { animation-delay: 0.365s; }
+.form-wrap form > *:nth-child(8) { animation-delay: 0.400s; }
+.form-wrap form > *:nth-child(9) { animation-delay: 0.435s; }
+.form-wrap form > *:nth-child(10) { animation-delay: 0.470s; }
+.form-wrap form > *:nth-child(11) { animation-delay: 0.505s; }
+.form-wrap form > *:nth-child(12) { animation-delay: 0.540s; }
+.form-wrap form > *:nth-child(13) { animation-delay: 0.575s; }
+.form-wrap form > *:nth-child(14) { animation-delay: 0.610s; }
+.form-wrap form > *:nth-child(15) { animation-delay: 0.645s; }
+.form-wrap form > *:nth-child(16) { animation-delay: 0.680s; }
+.form-wrap form > *:nth-child(17) { animation-delay: 0.715s; }
+.form-wrap form > *:nth-child(18) { animation-delay: 0.750s; }
+/* wrong password / wrong code: the message shakes */
+.form-wrap .error:not(:empty) {
+  animation: shake 0.45s ease-in-out;
+}
+/* the sign-up button gets a light sweep on hover */
+.form-wrap .search-card .btn-primary {
+  position: relative;
+  overflow: hidden;
+}
+.form-wrap .search-card .btn-primary::before {
+  content: "";
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 40%;
+  height: 100%;
+  background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.3), transparent);
+  transform: translateX(-120%) skewX(-20deg);
+  pointer-events: none;
+}
+.form-wrap .search-card .btn-primary:not(:disabled):hover::before {
+  animation: sheen 0.8s ease;
+}
+
+/* Signup: email + "Send code" on one row, and the 6-digit code box */
+.inline-row {
+  display: flex;
+  gap: 8px;
+  align-items: center;
+}
+.inline-row input {
+  flex: 1;
+  min-width: 0;
+}
+.inline-row .btn-secondary {
+  width: auto;
+  white-space: nowrap;
+  flex-shrink: 0;
+}
+.code-input {
+  text-align: center;
+  font-size: 1.4rem;
+  letter-spacing: 0.5em;
+  font-weight: 700;
+  font-family: inherit;
+}
+.code-input:disabled {
+  opacity: 0.55;
+  cursor: not-allowed;
+}
+/* when the code box unlocks (after "Send code"), it pops */
+.form-wrap .code-input:not(:disabled) {
+  animation: codePop 0.6s var(--ease);
+}
+.alt.left {
+  text-align: left;
+  margin-top: 6px;
+}
+#f input:disabled:not(.code-input),
+#f select:disabled {
+  opacity: 0.7;
 }

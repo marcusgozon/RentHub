@@ -35,18 +35,54 @@
         <p class="error" id="err"></p>
         <button class="btn-primary" type="submit">Log In</button>
       </form>
-      <p class="alt">New here? <a href="signup.html">Create an account</a></p>
+      <form id="f2" hidden>
+        <p class="sub" id="codeInfo"></p>
+        <label for="code">6-DIGIT CODE</label>
+        <input id="code" inputmode="numeric" pattern="[0-9]{6}" maxlength="6" autocomplete="one-time-code" required />
+        <p class="error" id="err2"></p>
+        <button class="btn-primary" type="submit">Verify and log in</button>
+        <p class="alt"><a href="#" id="resend">Resend code</a> &middot; <a href="login.html">Start over</a></p>
+      </form>
+      <p class="alt" id="newHere">New here? <a href="signup.html">Create an account</a></p>
     </div>
   </main>
   <footer class="site-footer"><p>&copy; 2024 RentHub. All rights reserved.</p></footer>
   <script src="../js/script.js"></script>
   <script>
+    const $ = id => document.getElementById(id);
+    const goNext = () => location.href = new URLSearchParams(location.search).get("next") || "../index.html";
 
-    document.getElementById("f").addEventListener("submit", async e => {
+    // Step 1: email + password
+    $("f").addEventListener("submit", async e => {
       e.preventDefault();
-      const msg = await RH.login(document.getElementById("email").value, document.getElementById("pw").value);
-      if (msg) { err.textContent = msg; return; }
-      location.href = new URLSearchParams(location.search).get("next") || "../index.html";
+      $("err").textContent = "";
+      const res = await RH.login($("email").value, $("pw").value);
+      if (res.error) { $("err").textContent = res.error; return; }
+      if (res.requires2fa) {
+        // Swap to the code step
+        $("f").hidden = true; $("newHere").hidden = true; $("f2").hidden = false;
+        document.querySelector(".search-card h1").textContent = "Check your email";
+        $("codeInfo").textContent = "We sent a 6-digit code to " + res.emailHint + ". It expires in 10 minutes.";
+        $("code").focus();
+        return;
+      }
+      goNext();
+    });
+
+    // Step 2: the emailed code
+    $("f2").addEventListener("submit", async e => {
+      e.preventDefault();
+      $("err2").textContent = "";
+      const res = await RH.verify2fa($("code").value);
+      if (res.error) { $("err2").textContent = res.error; return; }
+      goNext();
+    });
+
+    $("resend").addEventListener("click", async e => {
+      e.preventDefault();
+      $("err2").textContent = "";
+      const res = await RH.resend2fa();
+      $("err2").textContent = res.error || res.message;
     });
   </script>
 </body>

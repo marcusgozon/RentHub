@@ -46,23 +46,6 @@
     return false;
   }
 
-  async function signup(name, email, password, role = "tenant") {
-    try {
-      const response = await fetch("/api/register", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        credentials: "same-origin",
-        body: JSON.stringify({ name, email, password, role })
-      });
-      const data = await response.json();
-      if (!response.ok) return data.error || "Could not create account.";
-      store.set("rh_session", { name: data.user.name, email: data.user.email, role: data.user.role });
-      return null;
-    } catch (error) {
-      return "Can't reach the backend. Make sure the RentHub Python server is running.";
-    }
-  }
-
   // Asks the backend whether an account with this email already exists.
   async function emailTaken(email) {
     email = String(email || "").trim();
@@ -76,22 +59,64 @@
     }
   }
 
-  async function login(email, password) {
+  // Shared helper for the login / 2FA calls. Returns { ok, data } or { ok:false, data:{error} }.
+  async function post(url, body) {
     try {
-      const response = await fetch("/api/login", {
+      const response = await fetch(url, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         credentials: "same-origin",
-        body: JSON.stringify({ email, password })
+        body: JSON.stringify(body || {})
       });
-      const data = await response.json();
-      if (!response.ok) return data.error || "Login failed.";
-      store.set("rh_session", { name: data.user.name, email: data.user.email, role: data.user.role });
-      return null;
+      return { ok: response.ok, data: await response.json() };
     } catch (error) {
-      return "Can't reach the backend. Make sure the RentHub Python server is running.";
+      return { ok: false, data: { error: "Can't reach the backend. Make sure the RentHub Python server is running." } };
     }
   }
+
+  // Step 1 of login. Resolves to { error } | { requires2fa, emailHint } | {} (logged in).
+  async function login(email, password) {
+    const { ok, data } = await post("/api/login", { email, password });
+    if (!ok) return { error: data.error || "Login failed." };
+    if (data.requires_2fa) return { requires2fa: true, emailHint: data.email_hint };
+    store.set("rh_session", { name: data.user.name, email: data.user.email, role: data.user.role });
+    return {};
+  }
+
+  // Step 2 of login: the 6-digit code from the email. Resolves to { error } | {}.
+  async function verify2fa(code) {
+    const { ok, data } = await post("/api/verify-2fa", { code });
+    if (!ok) return { error: data.error || "Verification failed." };
+    store.set("rh_session", { name: data.user.name, email: data.user.email, role: data.user.role });
+    return {};
+  }
+
+  // Ask for a new code. Resolves to { error } | { message }.
+  async function resend2fa() {
+    const { ok, data } = await post("/api/resend-2fa");
+    return ok ? { message: data.message } : { error: data.error || "Could not resend the code." };
+  }
+  // Step 1 of signup: sends the 6-digit code. Resolves to { error } | { emailHint }.
+  // The account is NOT created yet; that happens in verifySignup().
+  async function signup(name, email, password, role = "tenant") {
+    const { ok, data } = await post("/api/register", { name, email, password, role });
+    if (!ok) return { error: data.error || "Could not create account." };
+    return { emailHint: data.email_hint };
+  }
+
+  // Step 2 of signup: the emailed code creates the account and logs the user in.
+  async function verifySignup(code) {
+    const { ok, data } = await post("/api/verify-signup", { code });
+    if (!ok) return { error: data.error || "Verification failed." };
+    store.set("rh_session", { name: data.user.name, email: data.user.email, role: data.user.role });
+    return {};
+  }
+
+  async function resendSignup() {
+    const { ok, data } = await post("/api/resend-signup");
+    return ok ? { message: data.message } : { error: data.error || "Could not resend the code." };
+  }
+
   async function logout() {
     try { await fetch("/api/logout", { method: "POST", credentials: "same-origin" }); } catch (error) {}
     localStorage.removeItem("rh_session");
@@ -102,12 +127,20 @@
   const menuBtn = $("#menuBtn");
   const setMenu = open => {
     $("#nav").classList.toggle("open", open); $("#auth").classList.toggle("open", open);
+    document.body.classList.toggle("menu-open", open);
     menuBtn.setAttribute("aria-expanded", open); menuBtn.textContent = open ? "✕" : "☰";
   };
   if (menuBtn) {
     menuBtn.setAttribute("aria-expanded", "false");
     menuBtn.addEventListener("click", () => setMenu(!$("#nav").classList.contains("open")));
     window.addEventListener("resize", () => { if (window.innerWidth > 760) setMenu(false); });
+    // Close the drawer: tap the dimmed page, press Escape, or pick a link.
+    document.addEventListener("click", e => {
+      if (!$("#nav").classList.contains("open")) return;
+      if (e.target.closest("#nav, #auth, #menuBtn")) { if (e.target.closest("#nav a, #auth a")) setMenu(false); return; }
+      setMenu(false);
+    });
+    document.addEventListener("keydown", e => { if (e.key === "Escape") setMenu(false); });
   }
   const here = location.pathname.split("/").pop() || "index.html";
   document.querySelectorAll("#nav a").forEach(a => { if (a.getAttribute("href").split("/").pop() === here) a.classList.add("active"); });
@@ -147,5 +180,5 @@
     else if (mp && Number(mp) <= 0) { e.preventDefault(); err.textContent = "Enter a price above 0."; }
   });
 
-  window.RH = { LISTINGS, peso, today, addMonths, nice, esc, user, myRentals, saveRental, removeRental, endDate, status, requireLogin, signup, login, emailTaken, root };
+  window.RH = { LISTINGS, peso, today, addMonths, nice, esc, user, myRentals, saveRental, removeRental, endDate, status, requireLogin, signup, verifySignup, resendSignup, login, verify2fa, resend2fa, emailTaken, root };
 })();

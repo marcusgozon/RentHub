@@ -6,6 +6,14 @@
   --light: #f3e4c9;
   --gray: #666;
   --border: #f3e4c9;
+
+  /* design tokens */
+  --line: rgba(38, 21, 21, 0.16);
+  --radius: 20px;
+  --ease: cubic-bezier(0.22, 0.8, 0.3, 1);
+  --shadow-sm: 0 2px 10px rgba(38, 21, 21, 0.12);
+  --shadow-md: 0 10px 30px rgba(38, 21, 21, 0.22);
+  --shadow-lg: 0 24px 60px rgba(0, 0, 0, 0.35);
 }
 
 * {
@@ -14,35 +22,72 @@
   padding: 0;
 }
 
+html {
+  scroll-behavior: smooth;
+  -webkit-text-size-adjust: 100%;
+}
+
+::selection {
+  background: var(--dark);
+  color: var(--light);
+}
+
 body {
   font-family: "Poppins", Arial, sans-serif;
   color: var(--dark);
   min-height: 100vh;
   display: flex;
   flex-direction: column;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
 }
 
+:focus-visible {
+  outline: 2px solid var(--dark);
+  outline-offset: 2px;
+}
+
+/* ---------- Shared animations ---------- */
+@keyframes fadeUp {
+  from { opacity: 0; transform: translateY(18px); }
+  to   { opacity: 1; transform: none; }
+}
+@keyframes cardIn {
+  from { opacity: 0; transform: translateY(28px) scale(0.96); }
+  to   { opacity: 1; transform: none; }
+}
+@keyframes fadeIn {
+  from { opacity: 0; }
+  to   { opacity: 1; }
+}
+
+/* ---------- Header ---------- */
 .site-header {
   display: flex;
   align-items: center;
   gap: 24px;
-  padding: 0px 42px;
+  padding: 10px 42px;
   background: var(--light);
-  position: relative;
-  margin-bottom: 0px;
+  position: sticky;
+  top: 0;
+  z-index: 200;
+  margin-bottom: 0;
+  box-shadow: 0 2px 18px rgba(38, 21, 21, 0.14);
 }
 .logoimg {
-  margin-top:10px;
-  align-items: center;
-  justify-content: center;
+  display: block;
   width: 60px;
   height: 60px;
+  transition: transform 0.35s var(--ease);
 }
 .logo {
   font-size: 1.6rem;
   font-weight: 800;
   color: var(--dark);
   text-decoration: none;
+}
+.logo:hover .logoimg {
+  transform: scale(1.07) rotate(-3deg);
 }
 nav {
   display: flex;
@@ -52,7 +97,7 @@ nav {
 
 ul.nav-links {
   display: flex;
-  gap: 20px;
+  gap: 22px;
   list-style: none;
   padding-left: 0;
 }
@@ -63,14 +108,43 @@ nav a,
   color: var(--dark);
   font-size: 0.95rem;
   font-weight: bold;
+  transition: color 0.25s ease, background-color 0.25s ease;
 }
 nav a:hover,
 .auth a:hover {
   color: var(--red);
 }
+/* animated underline on the desktop nav links */
+nav a {
+  position: relative;
+  padding: 6px 0;
+}
+nav a::after {
+  content: "";
+  position: absolute;
+  left: 0;
+  bottom: 0;
+  width: 100%;
+  height: 2px;
+  border-radius: 2px;
+  background: var(--dark);
+  transform: scaleX(0);
+  transform-origin: left;
+  transition: transform 0.35s var(--ease);
+}
+nav a:hover::after,
+nav a.active::after {
+  transform: scaleX(1);
+}
 .auth {
   display: flex;
-  gap: 18px;
+  align-items: center;
+  gap: 14px;
+}
+.auth .hello {
+  white-space: nowrap;
+  align-self: center;
+  font-weight: 600;
 }
 .menu-btn {
   display: none;
@@ -78,6 +152,11 @@ nav a:hover,
   border: none;
   font-size: 1.6rem;
   cursor: pointer;
+  color: var(--dark);
+  transition: transform 0.25s var(--ease);
+}
+.menu-btn:active {
+  transform: scale(0.88);
 }
 
 /* ---------- Hero ---------- */
@@ -89,7 +168,9 @@ main {
 .hero {
   flex: 1;
   min-height: 0;
-  background: url("../img/herobg.jpg") center/cover no-repeat;
+  background:
+    linear-gradient(rgba(20, 10, 10, 0.18), rgba(20, 10, 10, 0.32)),
+    url("../img/herobg.jpg") center/cover no-repeat;
   display: flex;
   align-items: center;
   padding: 0 6vw;
@@ -99,32 +180,46 @@ main {
   background: var(--light);
   width: 100%;
   max-width: 440px;
-  padding: 28px;
-  border-radius: 20px;
-  box-shadow: 0 10px 30px rgba(0, 0, 0, 0.25);
+  padding: 30px 30px 32px;
+  border-radius: 24px;
+  box-shadow: var(--shadow-lg);
+  border: 1px solid rgba(255, 255, 255, 0.35);
+  animation: cardIn 0.7s var(--ease) both;
 }
 .search-card h1 {
   font-size: 1.6rem;
   margin-bottom: 20px;
+  letter-spacing: -0.01em;
 }
 
 label {
   display: block;
   font-size: 0.7rem;
   font-weight: 700;
+  letter-spacing: 0.06em;
   color: var(--gray);
   margin: 14px 0 6px;
 }
 input {
   width: 100%;
   border-radius: 50px;
-  padding: 12px;
-  border: 1px solid var(--border);
+  padding: 12px 18px;
+  border: 1px solid var(--line);
+  font-family: inherit;
   font-size: 0.95rem;
+  color: var(--dark);
+  transition: border-color 0.2s ease, box-shadow 0.25s ease, background-color 0.2s ease;
+}
+input::placeholder {
+  color: #a49a8f;
+}
+input:hover {
+  border-color: rgba(38, 21, 21, 0.35);
 }
 input:focus {
-  outline: 2px solid var(--red);
-  border-color: transparent;
+  outline: none;
+  border-color: var(--dark);
+  box-shadow: 0 0 0 4px rgba(38, 21, 21, 0.14);
 }
 .row {
   display: grid;
@@ -133,8 +228,9 @@ input:focus {
 }
 
 .error {
-  color: var(--red);
+  color: #a3261d;
   font-size: 0.85rem;
+  font-weight: 500;
   min-height: 1.2em;
   margin-top: 8px;
 }
@@ -145,42 +241,64 @@ input:focus {
   padding: 14px;
   background: var(--red);
   color: var(--light);
-  /* Border is always present so hovering never changes the button's size
-     (previously it went from no border to 1px, which made it "shake"). */
+  /* Border is always present so hovering never changes the button's size. */
   border: 1px solid var(--red);
   border-radius: 30px;
+  font-family: inherit;
   font-size: 1rem;
   font-weight: 700;
   cursor: pointer;
-  transition: background-color 0.25s ease, color 0.25s ease, opacity 0.25s ease;
+  transition: background-color 0.25s ease, color 0.25s ease, opacity 0.25s ease,
+    transform 0.25s var(--ease), box-shadow 0.25s ease;
 }
 .btn-primary:hover {
   background: white;
   color: var(--red);
+  transform: translateY(-2px);
+  box-shadow: 0 8px 20px rgba(38, 21, 21, 0.25);
 }
-
 .btn-primary:active {
-  opacity: 0.8;
+  opacity: 0.85;
+  transform: translateY(0) scale(0.98);
+  box-shadow: none;
+}
+.btn-primary:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+.btn-primary:disabled:hover {
+  background: var(--red);
+  color: var(--light);
+  transform: none;
+  box-shadow: none;
 }
 
 /* ---------- Cards ---------- */
 .cards {
   display: grid;
   grid-template-columns: repeat(auto-fill, minmax(260px, 1fr));
-  gap: 20px;
+  gap: 22px;
   margin-top: 20px;
 }
 .card {
   border: 1px solid var(--border);
-  border-radius: 10px;
-  padding: 18px;
+  border-radius: 18px;
+  padding: 20px;
+  box-shadow: var(--shadow-sm);
+  transition: transform 0.35s var(--ease), box-shadow 0.35s ease;
+}
+.card:hover {
+  transform: translateY(-5px);
+  box-shadow: var(--shadow-md);
 }
 .card h3 {
   margin-bottom: 6px;
+  letter-spacing: -0.01em;
 }
 .card .price {
   color: var(--red);
   font-weight: 700;
+  font-size: 1.05rem;
   margin: 8px 0;
 }
 .card .loc {
@@ -192,7 +310,7 @@ input:focus {
 @media (max-width: 760px) {
   .site-header {
     flex-wrap: wrap;
-    padding: 0 16px;
+    padding: 8px 16px;
     gap: 12px;
   }
 
@@ -207,42 +325,114 @@ input:focus {
     font-size: 1.5rem;
   }
 
+  /* ----- Mobile menu: side drawer (slides in from the left) ----- */
+  .menu-btn {
+    position: relative;
+    z-index: 120; /* stays tappable above the dimmed page */
+  }
+
   nav,
   .auth {
+    position: fixed;
+    left: 0;
+    width: min(290px, 84vw);
+    background: var(--light);
+    z-index: 110;
+    transform: translateX(-100%);
+    visibility: hidden;
+    transition: transform 0.35s var(--ease), visibility 0.35s;
+  }
+
+  nav {
+    top: 0;
+    bottom: 0;
+    flex: none;
+    flex-direction: column;
+    padding: 76px 14px 150px;
+    overflow-y: auto;
+    gap: 0;
+  }
+  nav::before {
+    content: "MENU";
+    position: absolute;
+    top: 28px;
+    left: 24px;
+    font-size: 0.7rem;
+    font-weight: 700;
+    letter-spacing: 0.14em;
+    color: var(--gray);
+  }
+
+  ul.nav-links {
+    flex-direction: column;
+    gap: 6px;
+    width: 100%;
+  }
+  nav a {
+    display: block;
+    padding: 12px 14px;
+    border-radius: 12px;
+    font-size: 0.95rem;
+  }
+  nav a::after {
     display: none;
+  }
+  nav a:hover {
+    background: rgba(38, 21, 21, 0.08);
+    color: var(--dark);
+  }
+  nav a.active {
+    background: var(--dark);
+    color: var(--light);
+  }
+
+  .auth {
+    bottom: 0;
+    flex-direction: column;
+    align-items: stretch;
+    gap: 10px;
+    padding: 16px 14px 20px;
+    border-top: 1px solid var(--line);
+  }
+  .auth a {
+    display: block;
+    width: 100%;
+  }
+  .auth .btn-primary {
+    width: 100%;
+    margin-top: 0;
+  }
+  .auth .hello {
+    text-align: center;
   }
 
   nav.open,
   .auth.open {
-    display: flex;
-    width: 100%;
-    order: 3;
-    background: var(--light);
-    padding: 0 0 12px;
-    z-index: 10;
+    transform: translateX(0);
+    visibility: visible;
+  }
+  nav.open {
+    box-shadow: 8px 0 30px rgba(0, 0, 0, 0.3);
   }
 
-  nav.open .nav-links,
-  .auth.open {
-    flex-direction: column;
-    align-items: flex-start;
-    width: 100%;
+  /* Dimmed page behind the open drawer; tapping it closes the menu.
+     It lives inside the (sticky) header so it stacks together with the drawer. */
+  .site-header::after {
+    content: "";
+    position: fixed;
+    inset: 0;
+    background: rgba(0, 0, 0, 0.45);
+    opacity: 0;
+    pointer-events: none;
+    z-index: 100;
+    transition: opacity 0.3s ease;
   }
-
-  nav.open .nav-links li,
-  .auth.open a {
-    width: 100%;
+  body.menu-open .site-header::after {
+    opacity: 1;
+    pointer-events: auto;
   }
-
-  .auth.open {
-    gap: 10px;
-    padding: 0 0 12px;
-  }
-
-  .auth.open a,
-  .auth.open .btn-primary {
-    width: 100%;
-    display: block;
+  body.menu-open {
+    overflow: hidden;
   }
 
   .row {
@@ -251,13 +441,13 @@ input:focus {
 
   .hero {
     justify-content: center;
-    padding: 0 16px;
+    padding: 24px 16px;
     min-height: 70vh;
   }
 
   .search-card {
     max-width: 100%;
-    padding: 22px 18px;
+    padding: 24px 20px 26px;
   }
 }
 
@@ -265,15 +455,25 @@ input:focus {
   background: var(--dark);
   color: var(--light);
   text-align: center;
+  font-size: 0.85rem;
+  letter-spacing: 0.02em;
   padding: 20px 0;
   margin-top: 0;
 }
 
-.btn-primary:disabled {
-  opacity: 0.5;
-  cursor: not-allowed;
+[hidden] {
+  display: none !important;
 }
-.btn-primary:disabled:hover {
-  background: var(--red);
-  color: var(--light);
+
+/* Respect people who prefer less motion */
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    animation-delay: 0s !important;
+    transition-duration: 0.01ms !important;
+    scroll-behavior: auto !important;
+  }
 }
