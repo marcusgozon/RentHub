@@ -1,6 +1,7 @@
 RENTHUB WEBSITE - TO-DO LIST
 
 PHASE 1: UI/UX IMPROVEMENTS
+- fix navbar ui on mobile (put it on the left)
 - Improve user profile UI and layout
 - Add profile picture upload
 - Add background photos to other pages
