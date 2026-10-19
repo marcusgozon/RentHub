@@ -1,9 +1,11 @@
 Your SQL is almost correct. You just need to select the `renthub_db` database before creating the `users` table.
 
 ```
+CREATE DATABASE IF NOT EXISTS renthub_db;
+
 USE renthub_db;
 
-CREATE TABLE users (
+CREATE TABLE IF NOT EXISTS users (
     id INT AUTO_INCREMENT PRIMARY KEY,
     full_name VARCHAR(100) NOT NULL,
     email VARCHAR(150) NOT NULL UNIQUE,
