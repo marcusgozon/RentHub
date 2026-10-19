@@ -1,0 +1,137 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Edit profile - RentHub</title>
+  <link rel="stylesheet" href="../css/style.css" />
+  <link rel="stylesheet" href="../css/pages.css" />
+  <link rel="icon" type="image/png" href="../img/renthub_logo.png" />
+</head>
+<body data-root="../">
+  <header class="site-header">
+    <a href="../index.html" class="logo"><img src="../img/renthub_logo.png" alt="RentHub Logo" class="logoimg" /></a>
+    <button class="menu-btn" id="menuBtn" aria-label="Toggle menu">☰</button>
+    <nav id="nav">
+      <ul class="nav-links">
+        <li><a href="../index.html">Home</a></li>
+        <li><a href="browse.html">Browse</a></li>
+        <li><a href="myrentals.html">My Rentals</a></li>
+        <li><a href="extendstay.html">Extend Stay</a></li>
+      </ul>
+    </nav>
+    <div class="auth" id="auth">
+      <a href="login.html"><button class="btn-primary">Log In</button></a>
+      <a href="signup.html" class="signup"><button class="btn-primary">Sign Up</button></a>
+    </div>
+  </header>
+
+  <main class="page">
+    <h1>Edit profile</h1>
+    <p class="sub">Update your photo and mobile number.</p>
+
+    <form class="panel profile-panel" id="profileForm" novalidate>
+      <div class="avatar-block">
+        <div class="avatar-preview" id="avatarPreview" aria-hidden="true"></div>
+        <div class="avatar-actions">
+          <label class="btn-secondary" for="photo">Change photo</label>
+          <input id="photo" name="photo" type="file" accept="image/png,image/jpeg,image/webp" hidden />
+          <button type="button" class="link-btn" id="removePhoto" hidden>Remove photo</button>
+          <p class="hint">JPG, PNG or WEBP, up to 2 MB.</p>
+        </div>
+      </div>
+
+      <label for="fullName">FULL NAME</label>
+      <input id="fullName" type="text" disabled />
+      <label for="email">EMAIL</label>
+      <input id="email" type="email" disabled />
+      <p class="hint">Name and email can't be changed here.</p>
+
+      <label for="phone">MOBILE NUMBER</label>
+      <input id="phone" name="phone" type="tel" inputmode="tel" placeholder="09171234567" maxlength="16" autocomplete="tel" />
+
+      <p class="error" id="err"></p>
+      <p class="ok" id="ok"></p>
+      <button class="btn-primary" type="submit" id="saveBtn">Save changes</button>
+    </form>
+  </main>
+  <footer class="site-footer"><p>&copy; 2024 RentHub. All rights reserved.</p></footer>
+  <script src="../js/script.js"></script>
+  <script>
+    if (RH.requireLogin()) {
+      const $ = id => document.getElementById(id);
+      const USER_ICON = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="8" r="4"/><path d="M4 21c0-4.4 3.6-7 8-7s8 2.6 8 7"/></svg>';
+      let current = { avatar: null, phone: "" };
+      let pickedFile = null, removeRequested = false, blobUrl = null;
+
+      const showAvatar = src => { $("avatarPreview").innerHTML = src ? '<img src="' + RH.esc(src) + '" alt="" />' : USER_ICON; };
+      const fill = p => {
+        current = p;
+        $("fullName").value = p.name; $("email").value = p.email; $("phone").value = p.phone || "";
+        showAvatar(p.avatar);
+        $("removePhoto").hidden = !p.avatar;
+      };
+
+      // Show what we know instantly, then load the real profile.
+      const cached = RH.user();
+      if (cached) { $("fullName").value = cached.name; $("email").value = cached.email; showAvatar(cached.avatar); }
+      fetch("/api/profile", { credentials: "same-origin" })
+        .then(async r => {
+          const d = await r.json();
+          if (r.status === 401) { localStorage.removeItem("rh_session"); location.replace("login.html?next=profile.html"); return; }
+          if (!r.ok) throw new Error(d.error);
+          fill(d.profile);
+        })
+        .catch(e => { $("err").textContent = e.message || "Can't reach the backend. Make sure the RentHub Python server is running."; });
+
+      $("photo").addEventListener("change", e => {
+        const f = e.target.files[0];
+        $("err").textContent = ""; $("ok").textContent = "";
+        if (!f) return;
+        if (!/^image\/(png|jpeg|webp)$/.test(f.type)) { $("err").textContent = "Please choose a JPG, PNG or WEBP image."; e.target.value = ""; return; }
+        if (f.size > 2 * 1024 * 1024) { $("err").textContent = "That photo is too big. Please choose one under 2 MB."; e.target.value = ""; return; }
+        pickedFile = f; removeRequested = false;
+        if (blobUrl) URL.revokeObjectURL(blobUrl);
+        blobUrl = URL.createObjectURL(f);
+        showAvatar(blobUrl);
+        $("removePhoto").hidden = false;
+      });
+
+      $("removePhoto").addEventListener("click", () => {
+        pickedFile = null; removeRequested = true; $("photo").value = "";
+        showAvatar(null); $("removePhoto").hidden = true;
+        $("ok").textContent = "";
+      });
+
+      $("profileForm").addEventListener("submit", async e => {
+        e.preventDefault();
+        $("err").textContent = ""; $("ok").textContent = "";
+        const phone = $("phone").value.trim();
+        if (phone && !/^(\+63|63|0)9\d{9}$/.test(phone.replace(/[\s-]/g, ""))) {
+          $("err").textContent = "Enter a valid mobile number, like 09171234567.";
+          $("phone").focus(); return;
+        }
+        const fd = new FormData();
+        fd.append("phone", phone);
+        if (pickedFile) fd.append("photo", pickedFile);
+        else if (removeRequested) fd.append("remove_photo", "1");
+
+        const btn = $("saveBtn"); btn.disabled = true; btn.textContent = "Saving…";
+        try {
+          const r = await fetch("/api/profile", { method: "POST", body: fd, credentials: "same-origin" });
+          const d = await r.json();
+          if (!r.ok) { $("err").textContent = d.error || "Could not save your profile."; return; }
+          pickedFile = null; removeRequested = false; $("photo").value = "";
+          fill(d.profile);
+          RH.setAvatar(d.profile.avatar);
+          $("ok").textContent = "Profile saved.";
+        } catch (err) {
+          $("err").textContent = "Can't reach the backend. Make sure the RentHub Python server is running.";
+        } finally {
+          btn.disabled = false; btn.textContent = "Save changes";
+        }
+      });
+    }
+  </script>
+</body>
+</html>

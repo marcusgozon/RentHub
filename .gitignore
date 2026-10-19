@@ -12,3 +12,6 @@ __pycache__/
 .idea/
 .DS_Store
 Thumbs.db
+
+# Uploaded profile photos (user data, not code)
+uploads/

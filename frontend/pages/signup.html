@@ -36,16 +36,20 @@
     <main class="form-wrap">
       <div class="search-card">
         <h1>Create your account</h1>
-        <form id="f">
+        <form id="f" novalidate>
           <label for="name">FULL NAME</label
           ><input id="name" required autocomplete="name" />
-          <label for="email">EMAIL</label
-          ><input id="email" type="email" required autocomplete="email" />
+          <label for="email">EMAIL</label>
+          <div class="inline-row">
+            <input id="email" type="email" required autocomplete="email" />
+            <button class="btn-secondary" type="button" id="sendBtn">Send code</button>
+          </div>
           <label for="role">ACCOUNT TYPE</label
           ><select id="role" required>
             <option value="tenant">Tenant</option>
-            <option value="landlord">Landlord</option></select> 
-            <label for="pw">PASSWORD</label
+            <option value="landlord">Landlord</option>
+          </select>
+          <label for="pw">PASSWORD</label
           ><input
             id="pw"
             type="password"
@@ -60,10 +64,30 @@
             required
             autocomplete="new-password"
           />
+
+          <label for="code">6-DIGIT VERIFICATION CODE</label>
+          <input
+            id="code"
+            class="code-input"
+            inputmode="numeric"
+            pattern="[0-9]{6}"
+            maxlength="6"
+            placeholder="______"
+            autocomplete="one-time-code"
+            disabled
+          />
+          <p class="sub" id="codeInfo">
+            Fill in your details, then press <b>Send code</b>. We'll email you a
+            6-digit code to confirm your email address.
+          </p>
+          <p class="alt left" id="codeLinks" hidden>
+            <a href="#" id="editLink">Edit details</a>
+          </p>
+
           <p class="error" id="err"></p>
-          <button class="btn-primary" type="submit">Sign Up</button>
+          <button class="btn-primary" type="submit" id="signupBtn" disabled>Sign Up</button>
         </form>
-        <p class="alt">
+        <p class="alt" id="haveAcct">
           Already have an account? <a href="login.html">Log in</a>
         </p>
       </div>
@@ -73,46 +97,141 @@
     </footer>
     <script src="../js/script.js"></script>
     <script>
-      const emailInput = document.getElementById("email");
-      const submitBtn = document.querySelector("#f button[type=submit]");
+      const $ = (id) => document.getElementById(id);
       const TAKEN_MSG = "That email already has an account. Try logging in.";
+      const FIELDS = ["name", "email", "role", "pw", "pw2"];
+      const COOLDOWN = 30; // seconds, matches the server
+      let codeSent = false;
+      let timer = null;
 
-      // Warn as soon as the user leaves the email field, before they fill in the rest.
-      emailInput.addEventListener("blur", async () => {
-        if (!emailInput.value || !emailInput.checkValidity()) return;
-        if (await RH.emailTaken(emailInput.value)) {
-          err.textContent = TAKEN_MSG;
-          submitBtn.disabled = true;
+      const goNext = () =>
+        (location.href = new URLSearchParams(location.search).get("next") || "browse.html");
+
+      function setLocked(locked) {
+        FIELDS.forEach((id) => {
+          $(id).disabled = locked;
+        });
+      }
+
+      function startCooldown() {
+        let left = COOLDOWN;
+        clearInterval(timer);
+        $("sendBtn").disabled = true;
+        const tick = () => {
+          if (left <= 0) {
+            clearInterval(timer);
+            $("sendBtn").disabled = false;
+            $("sendBtn").textContent = "Resend code";
+            return;
+          }
+          $("sendBtn").textContent = "Resend in " + left + "s";
+          left--;
+        };
+        tick();
+        timer = setInterval(tick, 1000);
+      }
+
+      // Warn as soon as the user leaves the email field.
+      $("email").addEventListener("blur", async () => {
+        const el = $("email");
+        if (codeSent || !el.value || !el.checkValidity()) return;
+        if (await RH.emailTaken(el.value)) {
+          $("err").textContent = TAKEN_MSG;
+          $("sendBtn").disabled = true;
         }
       });
-      emailInput.addEventListener("input", () => {
-        if (submitBtn.disabled) {
-          err.textContent = "";
-          submitBtn.disabled = false;
+      $("email").addEventListener("input", () => {
+        if (!codeSent && $("sendBtn").disabled) {
+          $("err").textContent = "";
+          $("sendBtn").disabled = false;
         }
       });
 
-      document.getElementById("f").addEventListener("submit", async (e) => {
+      function validateDetails() {
+        if (!$("name").value.trim()) return "Enter your full name.";
+        if (!$("email").value.trim() || !$("email").checkValidity()) return "Enter a valid email address.";
+        if ($("pw").value.length < 8) return "Password must be at least 8 characters.";
+        if ($("pw").value !== $("pw2").value) return "Passwords don't match.";
+        return "";
+      }
+
+      // Step 1: "Send code" (or "Resend code") emails a 6-digit code. No account yet.
+      $("sendBtn").addEventListener("click", async () => {
+        $("err").textContent = "";
+        const problem = validateDetails();
+        if (problem) {
+          $("err").textContent = problem;
+          return;
+        }
+        $("sendBtn").disabled = true;
+        $("sendBtn").textContent = "Sending...";
+        const res = codeSent
+          ? await RH.resendSignup()
+          : await RH.signup($("name").value, $("email").value, $("pw").value, $("role").value);
+        if (res.error) {
+          $("err").textContent = res.error;
+          $("sendBtn").disabled = false;
+          $("sendBtn").textContent = codeSent ? "Resend code" : "Send code";
+          return;
+        }
+        const first = !codeSent;
+        codeSent = true;
+        setLocked(true);
+        $("code").disabled = false;
+        $("signupBtn").disabled = false;
+        $("codeLinks").hidden = false;
+        $("haveAcct").hidden = true;
+        $("codeInfo").textContent = first
+          ? "We sent a 6-digit code to " + (res.emailHint || "your email") + ". It expires in 10 minutes."
+          : "A new code was sent. The old one no longer works.";
+        $("code").focus();
+        startCooldown();
+      });
+
+      // Let the user go back and change their details (then send a fresh code).
+      $("editLink").addEventListener("click", (e) => {
         e.preventDefault();
-        if (
-          document.getElementById("pw").value !==
-          document.getElementById("pw2").value
-        ) {
-          err.textContent = "Passwords don't match.";
+        clearInterval(timer);
+        codeSent = false;
+        setLocked(false);
+        $("code").value = "";
+        $("code").disabled = true;
+        $("signupBtn").disabled = true;
+        $("codeLinks").hidden = true;
+        $("haveAcct").hidden = false;
+        $("sendBtn").disabled = false;
+        $("sendBtn").textContent = "Send code";
+        $("err").textContent = "";
+        $("codeInfo").textContent =
+          "Fill in your details, then press Send code. We'll email you a 6-digit code to confirm your email address.";
+      });
+
+      // Digits only
+      $("code").addEventListener("input", () => {
+        $("code").value = $("code").value.replace(/\D/g, "").slice(0, 6);
+      });
+
+      // Step 2: Sign Up only works with the correct emailed code.
+      $("f").addEventListener("submit", async (e) => {
+        e.preventDefault();
+        $("err").textContent = "";
+        if (!codeSent) {
+          $("err").textContent = "Press Send code first to verify your email.";
           return;
         }
-        const msg = await RH.signup(
-          document.getElementById("name").value,
-          document.getElementById("email").value,
-          document.getElementById("pw").value,
-          document.getElementById("role").value,
-        );
-        if (msg) {
-          err.textContent = msg;
+        if ($("code").value.length !== 6) {
+          $("err").textContent = "Enter the 6-digit code from your email.";
+          $("code").focus();
           return;
         }
-        location.href =
-          new URLSearchParams(location.search).get("next") || "browse.html";
+        $("signupBtn").disabled = true;
+        const res = await RH.verifySignup($("code").value);
+        $("signupBtn").disabled = false;
+        if (res.error) {
+          $("err").textContent = res.error;
+          return;
+        }
+        goNext();
       });
     </script>
   </body>
