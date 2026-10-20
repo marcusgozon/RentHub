@@ -8,14 +8,13 @@
     <link rel="icon" type="image/png" href="img/renthub_logo.png" />
   </head>
   <body>
+    <div class="page-loader" id="pageLoader" role="status" aria-label="Loading">
+        <img src="img/renthub_logo.png" alt="RentHub" class="loader-logo" />
+    </div>
+
     <header class="site-header">
-      <a href="index.html" class="logo"
-        ><img
-          src="img/renthub_logo.png"
-          alt="RentHub Logo"
-          class="logoimg"
-      /></a>
-      <button class="menu-btn" id="menuBtn" aria-label="Toggle menu">☰</button>
+      <a href="index.html" class="logo"><img src="img/renthub_logo.png" alt="RentHub Logo" class="logoimg" /></a>
+      <button class="menu-btn" id="menuBtn" aria-label="Toggle menu"><span></span><span></span><span></span></button>
       <nav id="nav">
         <ul class="nav-links">
           <li><a href="index.html">Home</a></li>
@@ -36,8 +35,26 @@
 
     <main>
       <section class="hero">
+        <div class="hero-copy">
+          <p class="hero-eyebrow">Quezon City &amp; Metro Manila</p>
+          <h1>Renting a home,<br />made simple.</h1>
+          <p class="hero-desc">
+            RentHub connects you with apartments, condos, studios and bedspaces
+            across the city. Search by location and budget, book your move-in
+            date, and manage or extend your stay, all in one place.
+          </p>
+          <div class="hero-cta">
+            <a href="pages/browse.html" class="hero-btn">Browse Homes</a>
+            <a href="pages/extendstay.html" class="hero-btn ghost">Extend Your Stay</a>
+          </div>
+          <div class="hero-points">
+            <div><strong>Easy to search</strong><span>Filter homes by area, price and move-in date.</span></div>
+            <div><strong>Flexible stays</strong><span>Track your rentals and extend anytime.</span></div>
+          </div>
+        </div>
+
         <div class="search-card">
-          <h1>Find your RentHub home</h1>
+          <h2>Find your RentHub home</h2>
 
           <form id="searchForm" action="pages/browse.html" method="get">
             <label for="location">LOCATION</label>

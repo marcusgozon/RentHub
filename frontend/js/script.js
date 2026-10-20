@@ -123,12 +123,35 @@
     location.href = root + "index.html";
   }
 
+
+  // Page loader: fades out once the page is ready, and fades back in when switching pages.
+  const loader = $("#pageLoader");
+  if (loader) {
+    const started = Date.now(), MIN_SHOW = 250;
+    const hide = () => setTimeout(() => loader.classList.add("is-hidden"), Math.max(0, MIN_SHOW - (Date.now() - started)));
+    if (document.readyState === "complete") hide(); else window.addEventListener("load", hide);
+    // Coming back with the browser's Back button can restore the page with the loader still showing.
+    window.addEventListener("pageshow", e => { if (e.persisted) loader.classList.add("is-hidden"); });
+    document.addEventListener("click", e => {
+      const a = e.target.closest("a[href]");
+      if (!a || e.defaultPrevented || e.button !== 0 || e.metaKey || e.ctrlKey || e.shiftKey || e.altKey) return;
+      if (a.target && a.target !== "_self") return;
+      if (a.hasAttribute("download")) return;
+      const url = new URL(a.href, location.href);
+      if (url.origin !== location.origin) return;
+      if (url.pathname === location.pathname && url.search === location.search) return; // same page / #anchor
+      e.preventDefault();
+      loader.classList.remove("is-hidden");
+      setTimeout(() => { location.href = url.href; }, 220);
+    });
+  }
+
   // Header: mobile menu, active link, logged-in state
   const menuBtn = $("#menuBtn");
   const setMenu = open => {
     $("#nav").classList.toggle("open", open); $("#auth").classList.toggle("open", open);
     document.body.classList.toggle("menu-open", open);
-    menuBtn.setAttribute("aria-expanded", open); menuBtn.textContent = open ? "✕" : "☰";
+    menuBtn.setAttribute("aria-expanded", open);
   };
   if (menuBtn) {
     menuBtn.setAttribute("aria-expanded", "false");

@@ -10,6 +10,8 @@ CREATE TABLE IF NOT EXISTS users (
     role ENUM('tenant', 'landlord') NOT NULL DEFAULT 'tenant',
     phone VARCHAR(20) NULL,
     avatar VARCHAR(255) NULL,
+    avatar_data MEDIUMBLOB NULL,
+    avatar_mime VARCHAR(30) NULL,
     created_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP
 );
 

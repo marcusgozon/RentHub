@@ -11,7 +11,7 @@ from pathlib import Path
 import mysql.connector
 from mysql.connector import Error
 from dotenv import load_dotenv
-from flask import Flask, jsonify, request, session, send_from_directory
+from flask import Flask, Response, jsonify, request, session, send_from_directory
 import re as _re
 from werkzeug.security import generate_password_hash, check_password_hash
 
@@ -48,9 +48,10 @@ def cfg(name, default=""):
 FRONTEND_DIR = Path(__file__).resolve().parent.parent / "frontend"
 app = Flask(__name__, static_folder=None)
 
-# Profile photos are saved here (outside frontend/, so only /uploads/avatars/<file> is public).
-AVATAR_DIR = Path(__file__).resolve().parent.parent / "uploads" / "avatars"
-AVATAR_DIR.mkdir(parents=True, exist_ok=True)
+# Profile photos are stored in the database (users.avatar_data), not on disk.
+# This folder is only read once to move any older photos into the database.
+LEGACY_AVATAR_DIR = Path(__file__).resolve().parent.parent / "uploads" / "avatars"
+MIME_BY_EXT = {"jpg": "image/jpeg", "png": "image/png", "webp": "image/webp"}
 MAX_AVATAR_BYTES = 2 * 1024 * 1024  # 2 MB
 # Only real images are accepted: we check the file's first bytes, not just its name.
 IMAGE_SIGNATURES = (
@@ -541,8 +542,9 @@ def normalize_ph_mobile(raw):
         digits = "0" + digits[2:]
     return digits if _re.fullmatch(r"09\d{9}", digits) else None
 
-def avatar_url(filename):
-    return f"/uploads/avatars/{filename}" if filename else None
+def avatar_url(token):
+    # `avatar` holds a random token. It is the public URL key and changes with every new photo.
+    return f"/api/avatar/{token}" if token else None
 
 def detect_image_ext(data):
     for sig, ext in IMAGE_SIGNATURES:
@@ -605,7 +607,7 @@ def update_profile():
         if phone is None:
             return jsonify({"error": "Enter a valid mobile number, like 09171234567 or +639171234567."}), 400
 
-    new_file = None
+    new_token = new_mime = None
     upload = request.files.get("photo")
     if upload and upload.filename:
         data = upload.read(MAX_AVATAR_BYTES + 1)
@@ -614,7 +616,8 @@ def update_profile():
         ext = detect_image_ext(data)
         if not ext:
             return jsonify({"error": "Please upload a JPG, PNG or WEBP image."}), 400
-        new_file = f"user{user['id']}_{secrets.token_hex(8)}.{ext}"
+        new_token = secrets.token_hex(16)
+        new_mime = MIME_BY_EXT[ext]
 
     conn = cursor = None
     try:
@@ -624,24 +627,21 @@ def update_profile():
         if not row:
             session.clear()
             return jsonify({"error": "Account not found."}), 404
-        old_file = row.get("avatar")
 
         if phone is not None:
             cursor.execute("UPDATE users SET phone = %s WHERE id = %s", (phone or None, user["id"]))
-        if new_file:
-            (AVATAR_DIR / new_file).write_bytes(data)
-            cursor.execute("UPDATE users SET avatar = %s WHERE id = %s", (new_file, user["id"]))
+        if new_token:
+            # The image bytes go straight into the database; replacing a photo overwrites the old one.
+            cursor.execute(
+                "UPDATE users SET avatar = %s, avatar_data = %s, avatar_mime = %s WHERE id = %s",
+                (new_token, data, new_mime, user["id"]),
+            )
         elif request.form.get("remove_photo") == "1":
-            cursor.execute("UPDATE users SET avatar = NULL WHERE id = %s", (user["id"],))
+            cursor.execute(
+                "UPDATE users SET avatar = NULL, avatar_data = NULL, avatar_mime = NULL WHERE id = %s",
+                (user["id"],),
+            )
         conn.commit()
-
-        # Delete the replaced photo so old files do not pile up.
-        replaced = new_file or (old_file if request.form.get("remove_photo") == "1" else None)
-        if replaced and old_file:
-            try:
-                (AVATAR_DIR / Path(old_file).name).unlink(missing_ok=True)
-            except OSError:
-                pass
 
         row = fetch_profile(cursor, user["id"])
         return jsonify({"message": "Profile updated.", "profile": profile_json(row)}), 200
@@ -658,10 +658,28 @@ def update_profile():
 def too_large(_):
     return jsonify({"error": "That file is too big. Please choose a photo under 2 MB."}), 413
 
-@app.get("/uploads/avatars/<path:filename>")
-def avatar_file(filename):
-    resp = send_from_directory(AVATAR_DIR, filename)
+@app.get("/api/avatar/<token>")
+def avatar_file(token):
+    """Serve a profile photo from the database. The token is random, so URLs can't be guessed."""
+    conn = cursor = None
+    try:
+        conn = db_connection()
+        cursor = conn.cursor()
+        cursor.execute("SELECT avatar_data, avatar_mime FROM users WHERE avatar = %s", (token,))
+        row = cursor.fetchone()
+    except Error:
+        app.logger.exception("Database error while loading avatar")
+        return jsonify({"error": "Could not load the photo."}), 500
+    finally:
+        if cursor:
+            cursor.close()
+        if conn and conn.is_connected():
+            conn.close()
+    if not row or not row[0]:
+        return jsonify({"error": "Not found"}), 404
+    resp = Response(bytes(row[0]), mimetype=row[1] or "application/octet-stream")
     resp.headers["X-Content-Type-Options"] = "nosniff"
+    resp.headers["Cache-Control"] = "public, max-age=31536000, immutable"  # URL changes with each new photo
     return resp
 
 @app.post("/api/logout")
@@ -698,7 +716,12 @@ def ensure_schema():
                 if stmt and not stmt.upper().startswith(("CREATE DATABASE", "USE ")):
                     cursor.execute(stmt)
             # Older databases were created before the profile page existed: add the new columns.
-            for column, ddl in (("phone", "VARCHAR(20) NULL"), ("avatar", "VARCHAR(255) NULL")):
+            for column, ddl in (
+                ("phone", "VARCHAR(20) NULL"),
+                ("avatar", "VARCHAR(255) NULL"),
+                ("avatar_data", "MEDIUMBLOB NULL"),
+                ("avatar_mime", "VARCHAR(30) NULL"),
+            ):
                 cursor.execute(
                     "SELECT 1 FROM information_schema.COLUMNS "
                     "WHERE TABLE_SCHEMA = DATABASE() AND TABLE_NAME = 'users' AND COLUMN_NAME = %s",
@@ -706,6 +729,20 @@ def ensure_schema():
                 )
                 if cursor.fetchone() is None:
                     cursor.execute(f"ALTER TABLE users ADD COLUMN {column} {ddl}")
+            conn.commit()
+
+            # One-time move: photos saved as files by older versions go into the database.
+            cursor.execute("SELECT id, avatar FROM users WHERE avatar IS NOT NULL AND avatar_data IS NULL")
+            for user_id, filename in cursor.fetchall():
+                path = LEGACY_AVATAR_DIR / Path(filename).name
+                ext = path.suffix.lstrip(".").lower()
+                if path.is_file() and ext in MIME_BY_EXT:
+                    cursor.execute(
+                        "UPDATE users SET avatar_data = %s, avatar_mime = %s WHERE id = %s",
+                        (path.read_bytes(), MIME_BY_EXT[ext], user_id),
+                    )
+                else:
+                    cursor.execute("UPDATE users SET avatar = NULL WHERE id = %s", (user_id,))
             conn.commit()
             cursor.close()
         finally:
