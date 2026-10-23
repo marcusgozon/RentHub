@@ -6,6 +6,49 @@
   <title>Browse homes - RentHub</title>
   <link rel="stylesheet" href="../css/style.css" />
   <link rel="stylesheet" href="../css/pages.css" />
+  <style>
+    #detailDlg { width: min(36rem, 94vw); max-height: 92vh; overflow-y: auto; }
+    #detailDlg .gal-main { aspect-ratio: 16 / 10; border-radius: 1rem; overflow: hidden; background: #f3ece4; display: grid; place-items: center; }
+    #detailDlg .gal-main img { width: 100%; height: 100%; object-fit: cover; display: block; }
+    #detailDlg .gal-thumbs { display: flex; gap: 0.4rem; margin-top: 0.5rem; flex-wrap: wrap; }
+    #detailDlg .gal-thumbs button { padding: 0; border: 2px solid transparent; border-radius: 0.6rem; overflow: hidden; width: 3.5rem; height: 3.5rem; cursor: pointer; background: none; }
+    #detailDlg .gal-thumbs button.on { border-color: var(--dark); }
+    #detailDlg .gal-thumbs img { width: 100%; height: 100%; object-fit: cover; display: block; }
+    #detailDlg .d-desc { white-space: pre-wrap; margin: 0.75rem 0 0; font-size: 0.92rem; line-height: 1.5; }
+    #detailDlg .d-by { color: var(--gray); font-size: 0.82rem; margin: 0.75rem 0 0; }
+    #paymentDlg { width: min(40rem, 94vw); max-height: 92vh; overflow-y: auto; padding: 1.5rem; }
+    #paymentDlg .checkout-head { display: flex; justify-content: space-between; align-items: center; gap: 1rem; padding-bottom: 1rem; border-bottom: 1px solid var(--line); }
+    #paymentDlg .checkout-brand { display: flex; align-items: center; gap: 0.625rem; font-weight: 700; }
+    #paymentDlg .checkout-mark { display: grid; place-items: center; width: 2rem; height: 2rem; border-radius: 0.65rem; background: var(--dark); color: var(--light); font-size: 0.8rem; }
+    #paymentDlg .demo-tag { padding: 0.3rem 0.55rem; border-radius: 999px; background: rgba(38, 21, 21, 0.08); font-size: 0.66rem; font-weight: 700; letter-spacing: 0.06em; }
+    #paymentDlg .checkout-layout { display: grid; grid-template-columns: 1.15fr 0.85fr; gap: 1rem; margin-top: 1rem; }
+    #paymentDlg .checkout-section { min-width: 0; }
+    #paymentDlg .checkout-section h2 { margin-bottom: 0.25rem; }
+    #paymentDlg .checkout-section > .sub { margin-bottom: 0.75rem; }
+    #paymentDlg .method-list { display: grid; gap: 0.5rem; }
+    #paymentDlg .method-option { display: flex; flex-direction: row; align-items: center; gap: 0.65rem; padding: 0.65rem; border: 1px solid var(--line); border-radius: 0.75rem; cursor: pointer; transition: border-color 0.2s ease, background-color 0.2s ease; }
+    #paymentDlg .method-option:has(input:checked) { border-color: var(--dark); background: rgba(38, 21, 21, 0.06); }
+    #paymentDlg .method-option input { width: auto; margin: 0; padding: 0; border: 0; border-radius: 50%; background: none; accent-color: var(--dark); }
+    #paymentDlg .method-logo { display: block; flex: 0 0 3rem; width: 3rem; height: 2rem; object-fit: contain; }
+    #paymentDlg .method-copy { display: grid; gap: 0.1rem; }
+    #paymentDlg .method-copy strong { font-size: 0.82rem; }
+    #paymentDlg .method-copy small { color: var(--gray); font-size: 0.7rem; }
+    #paymentDlg .order-card { padding: 0.875rem; border-radius: 0.875rem; background: rgba(38, 21, 21, 0.06); }
+    #paymentDlg .order-card h3 { font-size: 0.9rem; }
+    #paymentDlg .order-card p { margin-top: 0.35rem; font-size: 0.78rem; }
+    #paymentDlg .order-line { display: flex; justify-content: space-between; gap: 0.5rem; margin-top: 0.75rem; padding-top: 0.75rem; border-top: 1px solid var(--line); font-size: 0.8rem; }
+    #paymentDlg .order-total { font-size: 1rem; font-weight: 700; }
+    #paymentDlg .payment-note { margin-top: 0.75rem; padding: 0.65rem; border-radius: 0.65rem; background: rgba(38, 21, 21, 0.06); font-size: 0.72rem; line-height: 1.45; }
+    #paymentDlg .checkout-actions { display: flex; gap: 0.625rem; margin-top: 1rem; }
+    #paymentDlg .checkout-actions > * { flex: 1; }
+    #paymentDlg .payment-error { margin-top: 0.5rem; }
+    #paymentDlg .payment-success { padding: 1.5rem 0.5rem 0.25rem; text-align: center; }
+    #paymentDlg .success-mark { display: grid; place-items: center; width: 3.25rem; height: 3.25rem; margin: 0 auto 0.75rem; border-radius: 50%; background: #d7ecd2; color: #245c2a; font-size: 1.5rem; }
+    #paymentDlg .payment-success p { margin-top: 0.5rem; }
+    @media (max-width: 560px) {
+      #paymentDlg .checkout-layout { grid-template-columns: 1fr; }
+    }
+  </style>
   <link rel="icon" type="image/png" href="../img/renthub_logo.png" />
 </head>
 <body data-root="../">
@@ -39,9 +82,24 @@
       <div><label for="fType">TYPE</label>
         <select id="fType"><option value="">Any</option><option>Studio</option><option>Condo</option><option>Apartment</option><option>House</option><option>Bedspace</option></select></div>
     </div>
-    <p class="count" id="count"></p>
+    <p class="count">
+      <svg class="count-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M3 11l9-7 9 7v9a1 1 0 0 1-1 1h-5v-6H9v6H4a1 1 0 0 1-1-1z"/></svg>
+      <span id="count"></span>
+    </p>
+    <p class="ok" id="requestNotice" role="status" hidden></p>
     <div class="cards" id="cards"></div>
   </main>
+  <dialog id="detailDlg">
+    <div class="gal-main" id="dMain"></div>
+    <div class="gal-thumbs" id="dThumbs"></div>
+    <h2 id="dtTitle" style="margin-top:0.875rem"></h2>
+    <p class="sub" id="dtLoc"></p>
+    <p class="meta" id="dtMeta"></p>
+    <p class="price" id="dtPrice"></p>
+    <p class="d-desc" id="dtDesc"></p>
+    <p class="d-by" id="dtBy"></p>
+    <div class="actions"><button class="btn-secondary" id="dtClose" type="button">Close</button><button class="btn-primary" id="dtRent" type="button">Request to rent</button></div>
+  </dialog>
   <dialog id="rentDlg">
     <h2 id="dlgTitle"></h2>
     <p class="sub" id="dlgLoc"></p>
@@ -52,7 +110,50 @@
     <p class="error" id="dErr"></p>
     <div class="actions"><button class="btn-secondary" id="dCancel" type="button">Cancel</button><button class="btn-primary" id="dOk" type="button">Confirm rental</button></div>
   </dialog>
-  <footer class="site-footer"><p>&copy; 2024 RentHub. All rights reserved.</p></footer>
+  <dialog id="paymentDlg">
+    <div id="checkoutContent">
+      <div class="checkout-head">
+        <div class="checkout-brand"><span class="checkout-mark" aria-hidden="true">RH</span><span>RentHub checkout</span></div>
+        <span class="demo-tag">DEMO PAYMENT</span>
+      </div>
+      <div class="checkout-layout">
+        <section class="checkout-section" aria-labelledby="paymentHeading">
+          <h2 id="paymentHeading">Payment method</h2>
+          <p class="sub">Choose how you would like to pay.</p>
+          <div class="method-list" role="radiogroup" aria-label="Payment method">
+            <label class="method-option"><input type="radio" name="paymentMethod" value="GCash" checked /><img class="method-logo" src="../img/gcash_logo.png" alt="" /><span class="method-copy"><strong>GCash</strong><small>E-wallet</small></span></label>
+            <label class="method-option"><input type="radio" name="paymentMethod" value="Maya" /><img class="method-logo" src="../img/maya_logo.png" alt="" /><span class="method-copy"><strong>Maya</strong><small>E-wallet</small></span></label>
+            <label class="method-option"><input type="radio" name="paymentMethod" value="Credit / debit card" /><img class="method-logo" src="../img/visa_mastercard_logo.png" alt="" /><span class="method-copy"><strong>Credit or debit card</strong><small>Visa / Mastercard (simulated)</small></span></label>
+            <label class="method-option"><input type="radio" name="paymentMethod" value="BDO bank transfer" /><img class="method-logo" src="../img/bdo_logo.png" alt="" /><span class="method-copy"><strong>BDO</strong><small>Online bank transfer</small></span></label>
+            <label class="method-option"><input type="radio" name="paymentMethod" value="BPI bank transfer" /><img class="method-logo" src="../img/bpi_logo.png" alt="" /><span class="method-copy"><strong>BPI</strong><small>Online bank transfer</small></span></label>
+            <label class="method-option"><input type="radio" name="paymentMethod" value="UnionBank transfer" /><img class="method-logo" src="../img/unionbank_logo.png" alt="" /><span class="method-copy"><strong>UnionBank</strong><small>Online bank transfer</small></span></label>
+          </div>
+        </section>
+        <aside class="checkout-section" aria-label="Rental order summary">
+          <h2>Order summary</h2>
+          <p class="sub">Review your rental before paying.</p>
+          <div class="order-card">
+            <h3 id="paymentHome"></h3>
+            <p id="paymentLocation"></p>
+            <p id="paymentDates"></p>
+            <div class="order-line"><span id="paymentBreakdown"></span><strong id="paymentSubtotal"></strong></div>
+            <div class="order-line order-total"><span>Total due</span><strong id="paymentTotal"></strong></div>
+          </div>
+          <p class="payment-note"><strong>School prototype:</strong> this checkout is simulated. No money is transferred. Do not enter or share real payment details.</p>
+        </aside>
+      </div>
+      <p class="error payment-error" id="paymentErr" role="alert"></p>
+      <div class="checkout-actions"><button class="btn-secondary" id="paymentCancel" type="button">Back</button><button class="btn-primary" id="paymentConfirm" type="button">Pay now</button></div>
+    </div>
+    <div id="paymentSuccess" class="payment-success" role="status" hidden>
+      <span class="success-mark" aria-hidden="true">✓</span>
+      <h2>Demo payment complete</h2>
+      <p id="paymentSuccessMessage"></p>
+      <p class="payment-note">This was a simulated transaction. No money was transferred.</p>
+      <div class="checkout-actions"><button class="btn-primary" id="paymentContinue" type="button">Go to My Rentals</button></div>
+    </div>
+  </dialog>
+  <footer class="site-footer"><p>&copy; 2026 RentHub. All rights reserved.</p></footer>
   <script src="../js/script.js"></script>
   <script>
 
@@ -60,42 +161,225 @@
     const p = new URLSearchParams(location.search);
     $("#fLoc").value = p.get("location") || ""; $("#fMax").value = p.get("maxPrice") || "";
     const wantedMove = p.get("moveIn") || "";
+    const DEMO_KEY = "rh_demo_listings";   // same key post-listing.html uses in demo mode
     let current = null;
+    let all = [];
+    let listingPhotos = [];
+    let pendingRental = null;
+
+    // One shape for every source. "key" is prefixed by source so ids can never collide
+    // (demo id 3 vs. database id 3) and nothing is counted twice.
+    const norm = (l, key) => ({
+      key, id: l.id, title: l.title || "", location: l.location || "", type: l.type || "",
+      price: Number(l.price) || 0, beds: Number(l.beds) || 0, baths: Number(l.baths) || 1,
+      image: l.image || null, images: l.images || (l.image ? [l.image] : []),
+      description: l.description || "", by: (l.landlord && l.landlord.name) || "",
+      available: l.available !== false && (!l.status || l.status === "available")
+    });
+    function build(apiListings) {
+      listingPhotos = []
+        .concat(RH.LISTINGS)
+        .concat(apiListings)
+        .concat(RH.store.get(DEMO_KEY, []));
+      return []
+        .concat(RH.LISTINGS.map(l => norm(l, "demo-" + l.id)))
+        .concat(apiListings.map(l => norm(l, "db-" + l.id)))
+        .concat(RH.store.get(DEMO_KEY, []).map(l => norm(l, "local-" + l.id)));
+    }
+
     function render() {
       const loc = $("#fLoc").value.trim().toLowerCase(), max = Number($("#fMax").value) || Infinity, type = $("#fType").value;
-      const list = RH.LISTINGS.filter(l => (!loc || (l.title + " " + l.location).toLowerCase().includes(loc)) && l.price <= max && (!type || l.type === type));
+      const list = all.filter(l => (!loc || (l.title + " " + l.location).toLowerCase().includes(loc)) && l.price <= max && (!type || l.type === type));
       $("#count").textContent = list.length + (list.length === 1 ? " home found" : " homes found");
       $("#cards").innerHTML = list.length ? list.map(l => `
-        <article class="card"><span class="tag">${l.type}</span><h3>${l.title}</h3>
-          <p class="loc">${l.location}</p>
+        <article class="card">${l.image ? `<div class="card-img"><img src="${RH.esc(l.image)}" alt="" loading="lazy" /></div>` : ""}
+          <span class="tag">${RH.esc(l.type)}</span><h3>${RH.esc(l.title)}</h3>
+          <p class="loc">${RH.esc(l.location)}</p>
           <p class="meta">${l.beds ? l.beds + " bed" : "Studio"} · ${l.baths} bath</p>
           <p class="price">${RH.peso(l.price)} / month</p>
-          <div class="actions"><button class="btn-primary" data-id="${l.id}">Rent this home</button></div></article>`).join("")
+          <div class="actions"><button class="btn-secondary" data-view="${RH.esc(l.key)}">View details</button>${l.available ? `<button class="btn-primary" data-key="${RH.esc(l.key)}">Request to rent</button>` : `<button class="btn-secondary" disabled>Unavailable</button>`}</div></article>`).join("")
         : '<div class="empty" style="grid-column:1/-1"><p>No homes match those filters. Try a higher price or clear the location.</p></div>';
     }
+
+    // Fetch the saved listings from the backend every time the page opens.
+    // Visibility/approval is decided by the server: whatever it returns is shown, nothing is forced.
+    async function load() {
+      let api = [];
+      try {
+        const r = await fetch("/api/listings", { credentials: "same-origin", cache: "no-store" });
+        if (r.ok) { const d = await r.json(); api = Array.isArray(d) ? d : (d.listings || []); }
+      } catch (e) { /* backend unreachable: keep showing demo + local listings */ }
+      all = build(api);
+      render();
+    }
+
     ["fLoc", "fMax", "fType"].forEach(id => $("#" + id).addEventListener("input", render));
     $("#dMonths").innerHTML = Array.from({length: 12}, (_, i) => `<option value="${i + 1}">${i + 1} month${i ? "s" : ""}</option>`).join("");
     function summary() {
       const m = Number($("#dMonths").value), mv = $("#dMove").value;
       $("#dSum").innerHTML = `Monthly rent <strong>${RH.peso(current.price)}</strong><br>Total for ${m} month${m > 1 ? "s" : ""} <strong>${RH.peso(current.price * m)}</strong>` + (mv ? `<br>Lease ends <strong>${RH.nice(RH.addMonths(mv, m))}</strong>` : "");
     }
-    $("#cards").addEventListener("click", e => {
-      const b = e.target.closest("button[data-id]"); if (!b || !RH.requireLogin()) return;
-      current = RH.LISTINGS.find(l => l.id === Number(b.dataset.id));
+    function openRent(listing) {
+      if (!listing || !RH.requireLogin()) return;
+      if (!String(listing.key).startsWith("db-")) {
+        $("#requestNotice").textContent = "Rental requests are available for homes posted by registered landlords.";
+        $("#requestNotice").hidden = false;
+        return;
+      }
+      if (!listing.available) return;
+      current = listing;
       $("#dlgTitle").textContent = current.title; $("#dlgLoc").textContent = current.location;
       $("#dMove").min = RH.today(); $("#dMove").value = wantedMove >= RH.today() ? wantedMove : RH.today();
       $("#dErr").textContent = ""; summary(); $("#rentDlg").showModal();
+    }
+    function openCheckout(rental) {
+      pendingRental = rental;
+      const total = rental.price * rental.months;
+      $("#paymentHome").textContent = rental.title;
+      $("#paymentLocation").textContent = rental.location;
+      $("#paymentDates").textContent = `Move-in: ${RH.nice(rental.moveIn)} · ${rental.months} month${rental.months === 1 ? "" : "s"}`;
+      $("#paymentBreakdown").textContent = `${RH.peso(rental.price)} × ${rental.months} month${rental.months === 1 ? "" : "s"}`;
+      $("#paymentSubtotal").textContent = RH.peso(total);
+      $("#paymentTotal").textContent = RH.peso(total);
+      $("#paymentErr").textContent = "";
+      $("#checkoutContent").hidden = false;
+      $("#paymentSuccess").hidden = true;
+      $("#paymentConfirm").disabled = false;
+      $("#paymentConfirm").textContent = "Pay now";
+      $("#paymentDlg").showModal();
+    }
+    function showPhoto(src) {
+      $("#dMain").innerHTML = src ? `<img src="${RH.esc(src)}" alt="" />` : "";
+      $("#dThumbs").querySelectorAll("button").forEach(b => b.classList.toggle("on", b.dataset.src === src));
+    }
+    function openDetails(l) {
+      if (!l) return;
+      current = l;
+      $("#dtRent").disabled = !l.available;
+      $("#dtRent").textContent = l.available ? "Request to rent" : "Unavailable";
+      $("#dtTitle").textContent = l.title; $("#dtLoc").textContent = l.location;
+      $("#dtMeta").textContent = l.type + " · " + (l.beds ? l.beds + " bed" : "Studio") + " · " + l.baths + " bath";
+      $("#dtPrice").textContent = RH.peso(l.price) + " / month";
+      $("#dtDesc").textContent = l.description; $("#dtDesc").hidden = !l.description;
+      $("#dtBy").textContent = l.by ? "Posted by " + l.by : ""; $("#dtBy").hidden = !l.by;
+      $("#dThumbs").innerHTML = l.images.length > 1
+        ? l.images.map(s => `<button type="button" data-src="${RH.esc(s)}" aria-label="Show photo"><img src="${RH.esc(s)}" alt="" /></button>`).join("") : "";
+      showPhoto(l.images[0] || null);
+      $("#detailDlg").showModal();
+    }
+    $("#dThumbs").addEventListener("click", e => { const b = e.target.closest("button[data-src]"); if (b) showPhoto(b.dataset.src); });
+    $("#dtClose").addEventListener("click", () => $("#detailDlg").close());
+    $("#dtRent").addEventListener("click", () => { const l = current; $("#detailDlg").close(); openRent(l); });
+    $("#cards").addEventListener("click", e => {
+      const v = e.target.closest("button[data-view]");
+      if (v) return openDetails(all.find(l => l.key === v.dataset.view));
+      const b = e.target.closest("button[data-key]");
+      if (b) openRent(all.find(l => l.key === b.dataset.key));
     });
     $("#dMove").addEventListener("input", summary); $("#dMonths").addEventListener("input", summary);
     $("#dCancel").addEventListener("click", () => $("#rentDlg").close());
-    $("#dOk").addEventListener("click", () => {
+    $("#dOk").addEventListener("click", async () => {
       const mv = $("#dMove").value;
       if (!mv || mv < RH.today()) { $("#dErr").textContent = "Pick a move-in date from today onward."; return; }
-      RH.saveRental({ id: Date.now(), owner: RH.user().email, listingId: current.id, title: current.title, location: current.location,
-        price: current.price, moveIn: mv, months: Number($("#dMonths").value), history: [] });
-      location.href = "myrentals.html";
+      const months = Number($("#dMonths").value);
+      const button = $("#dOk");
+      button.disabled = true;
+      const response = await fetch("/api/rental-requests", {
+        method: "POST",
+        credentials: "same-origin",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ listing_id: current.id, move_in: mv, months })
+      }).catch(() => null);
+      const data = response ? await response.json().catch(() => ({})) : {};
+      button.disabled = false;
+      if (!response || !response.ok) {
+        $("#dErr").textContent = data.error || "Could not send your rental request. Please try again.";
+        return;
+      }
+      $("#rentDlg").close();
+      $("#requestNotice").textContent = "Your request was sent to the landlord. Check My Rentals for the approval notification.";
+      $("#requestNotice").hidden = false;
     });
-    render();
+    $("#paymentCancel").addEventListener("click", () => $("#paymentDlg").close());
+    $("#paymentContinue").addEventListener("click", () => { location.href = "myrentals.html"; });
+    $("#paymentConfirm").addEventListener("click", async () => {
+      if (!pendingRental) {
+        $("#paymentErr").textContent = "Start the rental confirmation again before making a payment.";
+        return;
+      }
+      const selectedMethod = $('input[name="paymentMethod"]:checked');
+      if (!selectedMethod) {
+        $("#paymentErr").textContent = "Choose a payment method.";
+        return;
+      }
+      const method = selectedMethod.value;
+      const button = $("#paymentConfirm");
+      button.disabled = true;
+      button.textContent = "Processing demo payment…";
+      $("#paymentErr").textContent = "";
+      await new Promise(resolve => window.setTimeout(resolve, 700));
+      const reference = "RH-DEMO-" + Date.now();
+      const response = await fetch(`/api/rental-requests/${pendingRental.requestId}/pay`, {
+        method: "POST",
+        credentials: "same-origin",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ method, reference })
+      }).catch(() => null);
+      const data = response ? await response.json().catch(() => ({})) : {};
+      if (!response || !response.ok) {
+        button.disabled = false;
+        button.textContent = "Try again";
+        $("#paymentErr").textContent = data.error || "Could not record the demo payment. Please try again.";
+        return;
+      }
+      pendingRental = null;
+      $("#paymentSuccessMessage").textContent = `Your rental is confirmed. Demo reference: ${reference}`;
+      $("#checkoutContent").hidden = true;
+      $("#paymentSuccess").hidden = false;
+    });
+
+    async function continueToApprovedPayment() {
+      const requestId = Number(p.get("payRequest"));
+      if (!Number.isInteger(requestId) || requestId < 1) return;
+      if (!RH.requireLogin()) return;
+      const response = await fetch("/api/rental-requests", {
+        credentials: "same-origin",
+        cache: "no-store"
+      }).catch(() => null);
+      const data = response ? await response.json().catch(() => ({})) : {};
+      if (!response || !response.ok) {
+        $("#requestNotice").textContent = data.error || "Could not load your rental request.";
+        $("#requestNotice").hidden = false;
+        return;
+      }
+      const request = (data.requests || []).find(item => Number(item.id) === requestId);
+      if (!request) {
+        $("#requestNotice").textContent = "That rental request could not be found.";
+      } else if (request.status !== "approved") {
+        $("#requestNotice").textContent = request.status === "paid"
+          ? "This rental request has already been paid."
+          : request.status === "rejected"
+            ? "The landlord declined this rental request."
+            : "This request is still awaiting the landlord's approval.";
+      } else {
+        openCheckout({
+          requestId: request.id,
+          title: request.title,
+          location: request.location,
+          price: Number(request.monthly_price),
+          moveIn: request.move_in,
+          months: Number(request.months)
+        });
+        return;
+      }
+      $("#requestNotice").hidden = false;
+    }
+
+    all = build([]); render();   // show demo homes instantly,
+    load();                      // then add the saved ones from the backend
+    continueToApprovedPayment();
+    // Back/forward cache: re-fetch so a just-posted listing is never missing.
+    window.addEventListener("pageshow", e => { if (e.persisted) load(); });
   </script>
 </body>
 </html>

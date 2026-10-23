@@ -7,16 +7,7 @@
     set(k, v) { localStorage.setItem(k, JSON.stringify(v)); }
   };
 
-  const LISTINGS = [
-    { id: 1, title: "Studio near UP Diliman", location: "Diliman, Quezon City", type: "Studio", beds: 0, baths: 1, price: 9500 },
-    { id: 2, title: "Cozy 1BR condo", location: "Cubao, Quezon City", type: "Condo", beds: 1, baths: 1, price: 14000 },
-    { id: 3, title: "Family apartment", location: "Project 4, Quezon City", type: "Apartment", beds: 2, baths: 1, price: 16500 },
-    { id: 4, title: "Bedspace for students", location: "Teachers Village, Quezon City", type: "Bedspace", beds: 0, baths: 1, price: 3500 },
-    { id: 5, title: "Modern 2BR condo", location: "Eastwood, Libis", type: "Condo", beds: 2, baths: 2, price: 28000 },
-    { id: 6, title: "Townhouse with parking", location: "Kamuning, Quezon City", type: "House", beds: 3, baths: 2, price: 32000 },
-    { id: 7, title: "Studio by the MRT", location: "North Avenue, Quezon City", type: "Studio", beds: 0, baths: 1, price: 11000 },
-    { id: 8, title: "Garden-view apartment", location: "Marikina Heights, Marikina", type: "Apartment", beds: 2, baths: 1, price: 13500 }
-  ];
+  const LISTINGS = [];
 
   const peso = n => "₱" + Number(n).toLocaleString("en-PH");
   const pad = n => String(n).padStart(2, "0");
@@ -32,6 +23,12 @@
   const esc = s => String(s).replace(/[&<>"']/g, c => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" }[c]));
 
   const user = () => store.get("rh_session", null);
+  const rememberedUser = () => store.get("rh_remember_me", { email: "", password: "", enabled: false });
+  const setRememberedUser = (email, password, enabled) => {
+    if (!enabled || !email) { localStorage.removeItem("rh_remember_me"); return; }
+    store.set("rh_remember_me", { email: String(email).trim().toLowerCase(), password: String(password), enabled: true });
+  };
+  const clearRememberedUser = () => localStorage.removeItem("rh_remember_me");
   const allRentals = () => store.get("rh_rentals", []);
   const myRentals = () => { const u = user(); return u ? allRentals().filter(r => r.owner === u.email) : []; };
   const saveRental = r => { const all = allRentals().filter(x => x.id !== r.id); all.push(r); store.set("rh_rentals", all); };
@@ -95,6 +92,30 @@
   async function resend2fa() {
     const { ok, data } = await post("/api/resend-2fa");
     return ok ? { message: data.message } : { error: data.error || "Could not resend the code." };
+  }
+
+  // Forgot password flow: requests a code, verifies it, and then sets a new password.
+  async function forgotPassword(email) {
+    const { ok, data } = await post("/api/forgot-password", { email });
+    if (!ok) return { error: data.error || "Could not send reset code." };
+    return { emailHint: data.email_hint || email, message: data.message };
+  }
+
+  async function verifyResetCode(code) {
+    const { ok, data } = await post("/api/verify-reset-code", { code });
+    if (!ok) return { error: data.error || "Verification failed." };
+    return {};
+  }
+
+  async function resendResetCode() {
+    const { ok, data } = await post("/api/resend-reset-code");
+    return ok ? { message: data.message } : { error: data.error || "Could not resend the code." };
+  }
+
+  async function resetPassword(password) {
+    const { ok, data } = await post("/api/reset-password", { password });
+    if (!ok) return { error: data.error || "Could not update your password." };
+    return { message: data.message };
   }
   // Step 1 of signup: sends the 6-digit code. Resolves to { error } | { emailHint }.
   // The account is NOT created yet; that happens in verifySignup().
@@ -171,8 +192,129 @@
   const u = user(), auth = $("#auth");
   if (u && auth) {
     // Logged in: a profile icon (photo if they have one) that opens the profile page.
-    auth.innerHTML = '<button class="btn-primary" id="logoutBtn">Log Out</button>';
+    auth.innerHTML = `
+      <div class="notification-wrap" id="notificationWrap">
+        <button class="notification-toggle" id="notificationToggle" type="button"
+          aria-label="Notifications" aria-expanded="false" aria-controls="notificationPanel">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+            <path d="M18 8a6 6 0 0 0-12 0c0 7-3 7-3 9h18c0-2-3-2-3-9"/>
+            <path d="M10 21h4"/>
+          </svg>
+          <span class="notification-count" id="notificationCount" hidden></span>
+        </button>
+        <section class="notification-panel" id="notificationPanel" aria-label="Notifications" hidden>
+          <div class="notification-heading">
+            <strong>Notifications</strong>
+            <button type="button" class="notification-refresh" id="notificationRefresh">Refresh</button>
+          </div>
+          <div class="notification-list" id="notificationList" aria-live="polite">
+            <p class="notification-empty">Loading notifications…</p>
+          </div>
+          <a class="notification-all" href="${esc(root)}pages/myrentals.html">View all rental requests</a>
+        </section>
+      </div>
+      <button class="btn-primary" id="logoutBtn">Log Out</button>`;
     $("#logoutBtn").addEventListener("click", logout);
+
+    const notificationWrap = $("#notificationWrap");
+    const notificationToggle = $("#notificationToggle");
+    const notificationPanel = $("#notificationPanel");
+    const notificationList = $("#notificationList");
+    const notificationCount = $("#notificationCount");
+    let notificationItems = [];
+    const closeNotifications = () => {
+      notificationPanel.hidden = true;
+      notificationToggle.setAttribute("aria-expanded", "false");
+    };
+    const notificationStatus = status => status.charAt(0).toUpperCase() + status.slice(1);
+    const renderNotifications = () => {
+      const attention = notificationItems.filter(item =>
+        u.role === "landlord" ? item.status === "pending" :
+          item.status !== "paid"
+      ).length;
+      notificationCount.textContent = attention > 9 ? "9+" : String(attention);
+      notificationCount.hidden = attention === 0;
+      if (!notificationItems.length) {
+        notificationList.innerHTML = '<p class="notification-empty">You have no rental notifications.</p>';
+        return;
+      }
+      notificationList.innerHTML = notificationItems.slice(0, 8).map(item => {
+        const status = notificationStatus(item.status);
+        const message = u.role === "landlord"
+          ? `Rental request from ${esc(item.tenant_name)}`
+          : `Your request was ${esc(item.status)}`;
+        const details = u.role === "landlord"
+          ? `${esc(item.title)} · ${esc(item.tenant_email)}`
+          : `${esc(item.title)} · ${esc(item.location)}`;
+        const actions = u.role === "landlord" && item.status === "pending"
+          ? `<div class="notification-actions"><button type="button" data-notification-action="approve" data-id="${item.id}">Approve</button><button type="button" data-notification-action="reject" data-id="${item.id}">Decline</button></div>`
+          : u.role === "tenant" && item.status === "approved"
+            ? `<a class="notification-pay" href="${esc(root)}pages/browse.html?payRequest=${item.id}">Continue to payment</a>`
+            : "";
+        return `<article class="notification-item">
+          <div class="notification-item-top"><strong>${message}</strong><span>${status}</span></div>
+          <p>${details}</p>
+          ${actions}
+        </article>`;
+      }).join("");
+    };
+    const loadNotifications = async () => {
+      try {
+        const response = await fetch("/api/rental-requests", {
+          credentials: "same-origin",
+          cache: "no-store"
+        });
+        if (!response.ok) {
+          throw new Error(response.status === 401
+            ? "Please log in again to see notifications."
+            : "Could not load notifications. Try refreshing.");
+        }
+        const data = await response.json();
+        notificationItems = Array.isArray(data.requests) ? data.requests : [];
+        renderNotifications();
+      } catch (error) {
+        notificationItems = [];
+        notificationCount.hidden = true;
+        notificationList.innerHTML = `<p class="notification-empty">${esc(error.message || "Could not load notifications. Try refreshing.")}</p>`;
+      }
+    };
+    notificationToggle.addEventListener("click", () => {
+      const open = notificationPanel.hidden;
+      notificationPanel.hidden = !open;
+      notificationToggle.setAttribute("aria-expanded", String(open));
+      if (open) loadNotifications();
+    });
+    $("#notificationRefresh").addEventListener("click", loadNotifications);
+    notificationWrap.addEventListener("click", async event => {
+      const button = event.target.closest("[data-notification-action]");
+      if (!button) return;
+      button.disabled = true;
+      try {
+        const response = await fetch(`/api/rental-requests/${button.dataset.id}/decision`, {
+          method: "POST",
+          credentials: "same-origin",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ action: button.dataset.notificationAction })
+        });
+        const data = await response.json().catch(() => ({}));
+        if (!response.ok) throw new Error(data.error || "Could not update the rental request.");
+        await loadNotifications();
+      } catch (error) {
+        notificationList.insertAdjacentHTML("afterbegin",
+          `<p class="notification-error">${esc(error.message || "Could not update the rental request.")}</p>`);
+        button.disabled = false;
+      }
+    });
+    document.addEventListener("click", event => {
+      if (!notificationWrap.contains(event.target)) closeNotifications();
+    });
+    document.addEventListener("keydown", event => {
+      if (event.key === "Escape") closeNotifications();
+    });
+    loadNotifications();
+    window.setInterval(() => {
+      if (!document.hidden) loadNotifications();
+    }, 30000);
 
     const USER_ICON = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="8" r="4"/><path d="M4 21c0-4.4 3.6-7 8-7s8 2.6 8 7"/></svg>';
     const link = document.createElement("a");
@@ -186,6 +328,28 @@
     paint(u.avatar);
     setAvatar = avatar => { store.set("rh_session", { ...(user() || u), avatar: avatar || null }); paint(avatar); };
     auth.parentNode.insertBefore(link, auth);
+
+    // Landlords don't rent homes: "My Rentals" becomes "My Listings" and "Extend Stay" is hidden.
+    if (u.role === "landlord") {
+      document.querySelectorAll("#nav a").forEach(a => {
+        const file = a.getAttribute("href").split("/").pop();
+        if (file === "myrentals.html") a.textContent = "My Listings";
+        if (file === "extendstay.html") a.parentElement.remove();
+      });
+    }
+
+    // Role-based dashboard link (tenant.html or landlord.html) in the main menu.
+    const navList = document.querySelector("#nav ul");
+    if (navList && (u.role === "tenant" || u.role === "landlord") && !navList.querySelector("[data-dash]")) {
+      const li = document.createElement("li");
+      const a = document.createElement("a");
+      a.setAttribute("data-dash", "");
+      a.href = root + "pages/" + u.role + ".html";
+      a.textContent = "Dashboard";
+      if (here === u.role + ".html") a.classList.add("active");
+      li.appendChild(a);
+      navList.appendChild(li);
+    }
 
     // Refresh the saved photo in the background (e.g. changed on another device).
     fetch("/api/profile", { credentials: "same-origin" })
@@ -231,5 +395,105 @@
     else if (mp && Number(mp) <= 0) { e.preventDefault(); err.textContent = "Enter a price above 0."; }
   });
 
-  window.RH = { setAvatar: a => setAvatar(a), store, LISTINGS, peso, today, addMonths, nice, esc, user, myRentals, saveRental, removeRental, endDate, status, requireLogin, signup, verifySignup, resendSignup, login, verify2fa, resend2fa, emailTaken, root };
+  window.RH = { setAvatar: a => setAvatar(a), store, LISTINGS, peso, today, addMonths, nice, esc, user, rememberedUser, setRememberedUser, clearRememberedUser, myRentals, saveRental, removeRental, endDate, status, requireLogin, signup, verifySignup, resendSignup, login, verify2fa, resend2fa, forgotPassword, verifyResetCode, resendResetCode, resetPassword, emailTaken, root };
 })();
+
+/* RentHub payments: billing + late-fee maths. Pure logic (no DOM), so it is easy to test and
+   easy to move to the Flask backend later. Dates are "YYYY-MM-DD" strings, money is rounded to cents. */
+(function (root) {
+  const round2 = n => Math.round((Number(n) + Number.EPSILON) * 100) / 100;
+  const pad = n => String(n).padStart(2, "0");
+  const parse = iso => new Date(iso + "T00:00:00");
+  const fmt = d => d.getFullYear() + "-" + pad(d.getMonth() + 1) + "-" + pad(d.getDate());
+  const daysBetween = (a, b) => Math.round((parse(b) - parse(a)) / 86400000);
+  const addDays = (iso, n) => { const d = parse(iso); d.setDate(d.getDate() + n); return fmt(d); };
+  const uid = () => Date.now().toString(36) + Math.random().toString(36).slice(2, 6);
+
+  // What a landlord can customise. Late-fee types: none | flat | per_day | percent
+  const DEFAULT_SETTINGS = {
+    dueDay: 5,
+    graceDays: 3,
+    penalty: { type: "per_day", value: 50, cap: 0 },
+    extras: [], // recurring monthly charges: { id, name, amount }
+    methods: [
+      { id: "gcash", name: "GCash", details: "", enabled: true },
+      { id: "maya", name: "Maya", details: "", enabled: true },
+      { id: "bank", name: "Bank transfer", details: "", enabled: true },
+      { id: "cash", name: "Cash", details: "Pay your landlord in person.", enabled: true }
+    ]
+  };
+
+  const dueDate = (period, dueDay) => {
+    const [y, m] = period.split("-").map(Number);
+    return y + "-" + pad(m) + "-" + pad(Math.min(dueDay, new Date(y, m, 0).getDate()));
+  };
+
+  const itemsTotal = bill => round2(bill.items.reduce((s, i) => s + Number(i.amount || 0), 0));
+
+  // Late fee as of a given day. Nothing is charged until the grace period has passed.
+  function penalty(bill, asOf) {
+    const rule = bill.rule;
+    if (!rule || rule.type === "none") return 0;
+    const late = daysBetween(addDays(bill.dueDate, rule.graceDays), asOf); // days past the grace period
+    if (late <= 0) return 0;
+    const base = itemsTotal(bill);
+    let p = 0;
+    if (rule.type === "flat") p = rule.value;
+    else if (rule.type === "per_day") p = rule.value * late;
+    else if (rule.type === "percent") p = base * rule.value / 100;
+    if (rule.cap > 0) p = Math.min(p, rule.cap);
+    return round2(p);
+  }
+
+  const totalDue = (bill, asOf) => round2(itemsTotal(bill) + penalty(bill, asOf));
+  const sumBy = (bill, status) => round2(bill.payments.filter(p => p.status === status).reduce((s, p) => s + p.amount, 0));
+
+  // The late fee stops growing on the day a payment fully covers the bill.
+  function settle(bill) {
+    delete bill.settledOn;
+    let cum = 0;
+    const verified = bill.payments.filter(p => p.status === "verified").sort((a, b) => a.on.localeCompare(b.on));
+    for (const p of verified) {
+      cum = round2(cum + p.amount);
+      if (cum + 0.005 >= totalDue(bill, p.on)) { bill.settledOn = p.on; break; }
+    }
+    return bill;
+  }
+
+  function summary(bill, today) {
+    const asOf = bill.settledOn || today;
+    const pen = penalty(bill, asOf);
+    const total = round2(itemsTotal(bill) + pen);
+    const paid = sumBy(bill, "verified");
+    return {
+      penalty: pen, total, paid,
+      pending: sumBy(bill, "pending"),
+      balance: bill.settledOn ? 0 : Math.max(0, round2(total - paid)),
+      status: bill.settledOn ? "Paid" : today > bill.dueDate ? "Overdue" : "Unpaid",
+      daysToDue: daysBetween(today, bill.dueDate)
+    };
+  }
+
+  function makeBill({ rental, period, settings, extraItems }) {
+    const items = [{ name: "Rent", amount: Number(rental.price) }]
+      .concat((settings.extras || []).map(x => ({ name: x.name, amount: Number(x.amount) })))
+      .concat(extraItems || [])
+      .filter(i => i.name && i.amount > 0);
+    return {
+      id: uid(), rentalId: rental.id, owner: rental.owner, title: rental.title, location: rental.location,
+      period, dueDate: dueDate(period, settings.dueDay), items,
+      // The rule is copied into the bill so later setting changes never alter an agreed bill.
+      rule: { type: settings.penalty.type, value: settings.penalty.value, cap: settings.penalty.cap, graceDays: settings.graceDays },
+      payments: [], createdOn: fmt(new Date())
+    };
+  }
+
+  const ruleText = (r, peso) => {
+    if (!r || r.type === "none") return "No late fee";
+    const what = r.type === "flat" ? peso(r.value) + " one-time" : r.type === "per_day" ? peso(r.value) + " per late day" : r.value + "% of the bill";
+    return what + (r.cap > 0 ? ", max " + peso(r.cap) : "") + ", after " + r.graceDays + " grace day" + (r.graceDays === 1 ? "" : "s");
+  };
+
+  const api = { round2, daysBetween, addDays, uid, DEFAULT_SETTINGS, dueDate, itemsTotal, penalty, totalDue, settle, summary, makeBill, ruleText };
+  if (typeof module !== "undefined" && module.exports) module.exports = api; else root.Pay = api;
+})(typeof window !== "undefined" ? window : globalThis);

@@ -149,6 +149,158 @@ nav a.active {
   justify-content: flex-end;
   gap: 0.625rem;
 }
+.notification-wrap {
+  position: relative;
+  flex: none;
+}
+.notification-toggle {
+  position: relative;
+  display: grid;
+  place-items: center;
+  width: 2.5rem;
+  height: 2.5rem;
+  padding: 0;
+  border: 1px solid var(--line);
+  border-radius: 50%;
+  color: var(--dark);
+  background: rgba(38, 21, 21, 0.06);
+  cursor: pointer;
+  transition: background-color 0.2s ease, transform 0.25s var(--ease);
+}
+.notification-toggle:hover {
+  background: rgba(38, 21, 21, 0.12);
+  transform: translateY(-1px);
+}
+.notification-toggle svg {
+  width: 1.25rem;
+  height: 1.25rem;
+}
+.notification-count {
+  position: absolute;
+  top: -0.2rem;
+  right: -0.25rem;
+  display: grid;
+  place-items: center;
+  min-width: 1.1rem;
+  height: 1.1rem;
+  padding: 0 0.2rem;
+  border: 2px solid var(--light);
+  border-radius: 999px;
+  color: #fff;
+  background: #a72c20;
+  font-size: 0.62rem;
+  font-weight: 700;
+  line-height: 1;
+}
+.notification-panel {
+  position: absolute;
+  z-index: 220;
+  top: calc(100% + 0.75rem);
+  right: 0;
+  width: min(22rem, calc(100vw - 2rem));
+  max-height: min(70vh, 28rem);
+  overflow: auto;
+  padding: 0.875rem;
+  border: 1px solid var(--line);
+  border-radius: 1rem;
+  color: var(--dark);
+  background: #fff;
+  box-shadow: var(--shadow-lg);
+}
+.notification-panel[hidden],
+.notification-count[hidden] {
+  display: none;
+}
+.notification-heading,
+.notification-item-top {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.75rem;
+}
+.notification-heading {
+  padding-bottom: 0.65rem;
+  border-bottom: 1px solid var(--line);
+}
+.notification-refresh {
+  border: 0;
+  color: var(--dark);
+  background: transparent;
+  font: inherit;
+  font-size: 0.75rem;
+  font-weight: 600;
+  cursor: pointer;
+}
+.notification-list {
+  display: grid;
+  gap: 0.5rem;
+  padding: 0.5rem 0;
+}
+.notification-item {
+  padding: 0.65rem;
+  border-radius: 0.7rem;
+  background: rgba(38, 21, 21, 0.055);
+  font-size: 0.75rem;
+}
+.notification-item-top span {
+  flex: none;
+  color: var(--gray);
+  font-size: 0.65rem;
+}
+.notification-item p {
+  margin-top: 0.2rem;
+  color: var(--gray);
+  overflow-wrap: anywhere;
+}
+.notification-actions {
+  display: flex;
+  gap: 0.4rem;
+  margin-top: 0.5rem;
+}
+.notification-actions button,
+.notification-pay {
+  display: inline-block;
+  padding: 0.35rem 0.6rem;
+  border: 1px solid var(--dark);
+  border-radius: 999px;
+  color: var(--dark);
+  background: transparent;
+  font: inherit;
+  font-size: 0.7rem;
+  font-weight: 600;
+  text-decoration: none;
+  cursor: pointer;
+}
+.notification-actions button:first-child {
+  color: var(--light);
+  background: var(--dark);
+}
+.notification-actions button:disabled {
+  opacity: 0.55;
+  cursor: wait;
+}
+.notification-pay {
+  margin-top: 0.5rem;
+}
+.notification-empty,
+.notification-error {
+  padding: 0.75rem 0.25rem;
+  color: var(--gray);
+  font-size: 0.75rem;
+}
+.notification-error {
+  color: #a72c20;
+}
+.notification-all {
+  display: block;
+  padding-top: 0.65rem;
+  border-top: 1px solid var(--line);
+  color: var(--dark);
+  font-size: 0.75rem;
+  font-weight: 600;
+  text-align: center;
+  text-decoration: none;
+}
 .site-header .btn-primary {
   width: auto;
   margin-top: 0;
@@ -592,6 +744,27 @@ input:focus {
     padding: 1.25rem 1.25rem 1.5rem;
     border-top: 1px solid rgba(243, 228, 201, 0.16);
     border-bottom-left-radius: 1.5rem;
+  }
+  .auth .notification-wrap {
+    position: relative;
+    align-self: center;
+  }
+  .auth .notification-panel {
+    position: absolute;
+    top: auto;
+    right: 50%;
+    bottom: calc(100% + 0.75rem);
+    transform: translateX(50%);
+    width: min(19rem, calc(100vw - 2rem));
+    max-height: min(55vh, 24rem);
+  }
+  .auth .notification-toggle {
+    color: var(--light);
+    border-color: rgba(243, 228, 201, 0.35);
+    background: rgba(243, 228, 201, 0.1);
+  }
+  .auth .notification-toggle:hover {
+    background: rgba(243, 228, 201, 0.2);
   }
   .auth a {
     display: block;

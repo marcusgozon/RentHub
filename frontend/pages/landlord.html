@@ -1,0 +1,562 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Landlord Dashboard - RentHub</title>
+  <link rel="stylesheet" href="../css/style.css" />
+  <link rel="stylesheet" href="../css/pages.css" />
+  <style>
+    .landlord .stats { grid-template-columns: repeat(5, minmax(0, 1fr)); }
+    .lgrid { display: grid; grid-template-columns: repeat(auto-fill, minmax(15rem, 1fr)); gap: 1rem; }
+    .lcard { border: 1px solid var(--line); border-radius: 1rem; overflow: hidden; background: #fff; display: flex; flex-direction: column; }
+    .lcard .limg { aspect-ratio: 16 / 10; background: #f3ece4; display: grid; place-items: center; color: var(--gray); position: relative; }
+    .lcard .limg img { width: 100%; height: 100%; object-fit: cover; display: block; }
+    .lcard .limg svg { width: 2.5rem; height: 2.5rem; }
+    .lcard .lcount { position: absolute; right: 0.5rem; bottom: 0.5rem; background: rgba(38,21,21,.75); color: #fff; font-size: 0.7rem; padding: 0.15rem 0.5rem; border-radius: 99px; }
+    .lcard .lbody { padding: 0.875rem; display: flex; flex-direction: column; gap: 0.25rem; flex: 1; }
+    .lcard h3 { font-size: 1rem; margin: 0; }
+    .lcard .lmeta { color: var(--gray); font-size: 0.8rem; margin: 0; }
+    .lcard .lprice { font-weight: 700; margin: 0.25rem 0 0; }
+    .lcard .lact { margin-top: auto; padding-top: 0.625rem; }
+    .lcard .lstatus { align-self: flex-start; padding: 0.2rem 0.55rem; border-radius: 999px; background: #e4efdf; color: #28542d; font-size: 0.7rem; font-weight: 700; }
+    .lcard .lstatus:not(.available) { background: #f4e7d0; color: #684b1d; }
+    #listingDlg { width: min(34rem, 94vw); max-height: 92vh; overflow-y: auto; }
+    #listingDlg textarea { display: block; width: 100%; min-height: 5rem; resize: vertical; background: #fff; border: 1px solid var(--line); border-radius: 1rem; padding: 0.6rem 0.9rem; color: var(--dark); font: inherit; font-size: 0.9rem; }
+    #listingDlg textarea:focus { outline: none; border-color: var(--dark); }
+    .lform-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 0 0.75rem; }
+    .lform-grid .full { grid-column: 1 / -1; }
+    .thumbs { display: flex; flex-wrap: wrap; gap: 0.5rem; margin-top: 0.5rem; }
+    .thumbs .th { position: relative; width: 4.5rem; height: 4.5rem; border-radius: 0.75rem; overflow: hidden; border: 1px solid var(--line); }
+    .thumbs .th img { width: 100%; height: 100%; object-fit: cover; display: block; }
+    .thumbs .th button { position: absolute; top: 0.15rem; right: 0.15rem; width: 1.3rem; height: 1.3rem; border: 0; border-radius: 50%; background: rgba(38,21,21,.8); color: #fff; cursor: pointer; line-height: 1; font-size: 0.85rem; }
+    .thumbs .th.first::after { content: "Cover"; position: absolute; left: 0; right: 0; bottom: 0; text-align: center; font-size: 0.6rem; background: rgba(38,21,21,.75); color: #fff; padding: 0.1rem 0; }
+    @media (max-width: 960px) { .landlord .stats { grid-template-columns: repeat(2, minmax(0, 1fr)); } }
+    @media (max-width: 520px) { .lform-grid { grid-template-columns: 1fr; } }
+  </style>
+  <link rel="icon" type="image/png" href="../img/renthub_logo.png" />
+</head>
+<body class="dash landlord" data-root="../">
+
+  <div class="page-loader" id="pageLoader" role="status" aria-label="Loading">
+    <img src="../img/renthub_logo.png" alt="RentHub" class="loader-logo" />
+  </div>
+
+  <header class="site-header">
+    <a href="../index.html" class="logo">
+      <img src="../img/renthub_logo.png" alt="RentHub Logo" class="logoimg" />
+    </a>
+    <button class="menu-btn" id="menuBtn" aria-label="Toggle menu">
+      <span></span><span></span><span></span>
+    </button>
+    <nav id="nav">
+      <ul class="nav-links">
+        <li><a href="../index.html">Home</a></li>
+        <li><a href="browse.html">Browse</a></li>
+        <li><a href="landlord.html#listings">My Listings</a></li>
+      </ul>
+    </nav>
+    <div class="auth" id="auth">
+      <a href="login.html"><button class="btn-primary">Log In</button></a>
+      <a href="signup.html" class="signup"><button class="btn-primary">Sign Up</button></a>
+    </div>
+  </header>
+
+  <main class="page" id="app">
+
+    <!-- Welcome banner -->
+    <section class="card hello">
+      <a class="avatar" id="avatar" href="profile.html" aria-label="Open profile"></a>
+      <div>
+        <h1 id="welcome">Welcome back</h1>
+        <p>Post your homes, issue rent bills, verify payments, and manage your tenants.</p>
+        <dl>
+          <div><dt>Role</dt><dd>Landlord</dd></div>
+          <div><dt>Tenants</dt><dd id="helloTenants">—</dd></div>
+        </dl>
+      </div>
+      <a class="btn edit" href="profile.html">✎ Edit Profile</a>
+    </section>
+
+    <!-- Stat tiles -->
+    <div class="stats">
+      <div class="stat">
+        <span>Tenants</span>
+        <b id="sTenants">—</b>
+        <small>Active renters</small>
+      </div>
+      <div class="stat">
+        <span>Active listings</span>
+        <b id="sListings">—</b>
+        <small>Available to rent</small>
+      </div>
+      <div class="stat">
+        <span>Collected this month</span>
+        <b id="sCollected">—</b>
+        <small>Verified payments</small>
+      </div>
+      <div class="stat" id="sPendingBox">
+        <span>Awaiting verification</span>
+        <b id="sPending">—</b>
+        <small>Need your review</small>
+      </div>
+      <div class="stat" id="sOverdueBox">
+        <span>Overdue</span>
+        <b id="sOverdue">—</b>
+        <small>Past due date</small>
+      </div>
+    </div>
+
+    <!-- My listings -->
+    <section class="card" id="listings">
+      <div class="bar">
+        <h2>My listings</h2>
+        <button type="button" class="btn sm" data-act="addListing">+ Post a listing</button>
+      </div>
+      <div class="lgrid" id="myListings"><p class="empty">Loading…</p></div>
+    </section>
+
+    <!-- Payments to verify -->
+    <section class="card">
+      <div class="bar">
+        <h2>Payments to verify</h2>
+        <span class="note">Match the reference with your records</span>
+      </div>
+      <div class="tbl">
+        <table>
+          <thead>
+            <tr>
+              <th>Tenant</th>
+              <th>Listing</th>
+              <th>Month</th>
+              <th>Total</th>
+              <th>Due date</th>
+              <th>Date paid</th>
+              <th>Reference</th>
+              <th>Status</th>
+              <th>Action</th>
+            </tr>
+          </thead>
+          <tbody id="pendingBody">
+            <tr><td colspan="9" class="empty">Loading…</td></tr>
+          </tbody>
+        </table>
+      </div>
+    </section>
+
+    <!-- All bills -->
+    <section class="card">
+      <div class="bar">
+        <h2>All bills</h2>
+        <div style="display:flex;gap:0.5rem;flex-wrap:wrap;">
+          <a class="btn ghost sm" href="billing.html">Billing</a>
+          <button type="button" class="btn sm" data-act="addBill">+ Add bill</button>
+        </div>
+      </div>
+      <div class="tbl">
+        <table>
+          <thead>
+            <tr>
+              <th>Tenant</th>
+              <th>Listing</th>
+              <th>Month</th>
+              <th>Total</th>
+              <th>Due date</th>
+              <th>Date paid</th>
+              <th>Reference</th>
+              <th>Status</th>
+              <th>Action</th>
+            </tr>
+          </thead>
+          <tbody id="billsBody">
+            <tr><td colspan="9" class="empty">Loading…</td></tr>
+          </tbody>
+        </table>
+      </div>
+    </section>
+
+    <!-- My tenants -->
+    <section class="card">
+      <div class="bar">
+        <h2>My tenants</h2>
+        <button type="button" class="btn ghost sm" data-act="addTenant">+ Add tenant</button>
+      </div>
+      <div class="tbl">
+        <table>
+          <thead>
+            <tr>
+              <th>Name</th>
+              <th>Unit</th>
+              <th>Monthly rent</th>
+              <th>Status</th>
+            </tr>
+          </thead>
+          <tbody id="tenantsBody">
+            <tr><td colspan="4" class="empty">Loading…</td></tr>
+          </tbody>
+        </table>
+      </div>
+    </section>
+
+  </main>
+
+  <!-- Add bill dialog -->
+  <dialog id="billDlg" class="form-dlg">
+    <h2>Add bill</h2>
+    <form id="billForm" novalidate>
+      <label>Tenant
+        <select name="t" id="billTenant"></select>
+      </label>
+      <label>Month
+        <input type="month" name="month" />
+      </label>
+      <label>Due date
+        <input type="date" name="due" />
+      </label>
+      <label>Extra charges (water, electricity, etc.)
+        <input type="number" name="extra" min="0" step="1" value="0" />
+      </label>
+      <p class="error" id="billErr"></p>
+      <div class="actions" style="display:flex;gap:0.5rem;margin-top:1rem;">
+        <button type="button" class="btn ghost" data-close>Cancel</button>
+        <button type="submit" class="btn">Save</button>
+      </div>
+    </form>
+  </dialog>
+
+  <!-- Add tenant dialog -->
+  <dialog id="tenantDlg" class="form-dlg">
+    <h2>Add tenant</h2>
+    <form id="tenantForm" novalidate>
+      <label>Full name
+        <input name="name" autocomplete="off" placeholder="e.g. Maria Santos" />
+      </label>
+      <label>Unit
+        <input name="unit" placeholder="e.g. Unit 2B, Sunrise Residences" autocomplete="off" />
+      </label>
+      <label>Link to listing (optional)
+        <select name="listing_id" id="tenantListing"><option value="">Not linked to a listing</option></select>
+      </label>
+      <label>Monthly rent (₱)
+        <input type="number" name="rent" min="1" step="1" placeholder="e.g. 12000" />
+      </label>
+      <label>Tenant's RentHub email (optional)
+        <input type="email" name="email" autocomplete="off" placeholder="So they can see and pay their bills" />
+      </label>
+      <p class="error" id="tenantErr"></p>
+      <div class="actions" style="display:flex;gap:0.5rem;margin-top:1rem;">
+        <button type="button" class="btn ghost" data-close>Cancel</button>
+        <button type="submit" class="btn">Save</button>
+      </div>
+    </form>
+  </dialog>
+
+  <!-- post listing dialog -->
+  <dialog id="listingDlg" class="form-dlg">
+    <h2>Post a listing</h2>
+    <form id="listingForm" novalidate>
+      <label>Photos (up to 6, JPG/PNG/WEBP, 2 MB each)
+        <input type="file" id="lPhotos" accept="image/png,image/jpeg,image/webp" multiple />
+      </label>
+      <div class="thumbs" id="lThumbs"></div>
+      <div class="lform-grid">
+        <label class="full">Title
+          <input name="title" maxlength="120" autocomplete="off" placeholder="e.g. Cozy 1BR condo near MRT" />
+        </label>
+        <label class="full">Location
+          <input name="location" maxlength="160" autocomplete="off" placeholder="e.g. Cubao, Quezon City" />
+        </label>
+        <label>Type
+          <select name="type"><option>Studio</option><option>Condo</option><option>Apartment</option><option>House</option><option>Bedspace</option></select>
+        </label>
+        <label>Price / month (₱)
+          <input type="number" name="price" min="1" step="1" placeholder="e.g. 15000" />
+        </label>
+        <label>Bedrooms
+          <input type="number" name="beds" min="0" value="1" />
+        </label>
+        <label>Bathrooms
+          <input type="number" name="baths" min="1" value="1" />
+        </label>
+        <label class="full">Description (optional)
+          <textarea name="description" maxlength="5000" placeholder="Furnishings, house rules, nearby places…"></textarea>
+        </label>
+      </div>
+      <p class="error" id="listingErr"></p>
+      <div class="actions" style="display:flex;gap:0.5rem;margin-top:1rem;">
+        <button type="button" class="btn ghost" data-close>Cancel</button>
+        <button type="submit" class="btn" id="listingSave">Post listing</button>
+      </div>
+    </form>
+  </dialog>
+
+  <div id="toast"></div>
+
+  <footer class="site-footer"><p>&copy; 2026 RentHub. All rights reserved.</p></footer>
+
+  <script src="../js/script.js"></script>
+  <script>
+  (function () {
+    const $ = id => document.getElementById(id);
+    const SVG_USER = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="8" r="4"/><path d="M4 21c0-4.4 3.6-7 8-7s8 2.6 8 7"/></svg>';
+
+    /* avatar + welcome */
+    const u = RH.user();
+    if (u) {
+      $("welcome").textContent = "Welcome back, " + u.name.split(" ")[0] + "!";
+      const av = $("avatar");
+      av.innerHTML = u.avatar ? `<img src="${RH.esc(u.avatar)}" alt="" />` : SVG_USER;
+    }
+
+    /* toast */
+    let _t;
+    function toast(msg) {
+      const el = $("toast");
+      el.textContent = msg;
+      el.classList.add("show");
+      clearTimeout(_t);
+      _t = setTimeout(() => el.classList.remove("show"), 3000);
+    }
+
+    /* badge */
+    function badge(s) {
+      return `<span class="badge ${s}">${s}</span>`;
+    }
+
+    /* load stats */
+    async function loadStats() {
+      const r = await fetch("/api/landlord/stats", { credentials: "same-origin" }).catch(() => null);
+      if (!r?.ok) return;
+      const d = await r.json();
+      $("sTenants").textContent = d.tenants;
+      $("helloTenants").textContent = d.tenants;
+      $("sListings").textContent = d.active_listings;
+      $("sCollected").textContent = "₱" + Number(d.collected).toLocaleString();
+      $("sPending").textContent = d.pending;
+      $("sOverdue").textContent = d.overdue;
+      if (d.overdue > 0) $("sOverdueBox").classList.add("owed");
+    }
+
+    /* load bills */
+    async function loadBills() {
+      const r = await fetch("/api/bills", { credentials: "same-origin" }).catch(() => null);
+      if (!r?.ok) return;
+      const { bills } = await r.json();
+
+      const pending = bills.filter(b => b.status === "Pending");
+      $("pendingBody").innerHTML = pending.length
+        ? pending.map(b => `<tr>
+            <td>${RH.esc(b.tenant_name)}</td>
+            <td>${RH.esc(b.listing_title || b.unit || "—")}</td>
+            <td>${b.month}</td>
+            <td>₱${Number(b.total).toLocaleString()}</td>
+            <td>${b.due_date || "—"}</td>
+            <td>${b.paid_on || "—"}</td>
+            <td>${RH.esc(b.reference || "—")}</td>
+            <td>${badge(b.status)}</td>
+            <td style="display:flex;gap:0.375rem;">
+              <button class="btn sm" data-verify="${b.id}" data-action="approve">Approve</button>
+              <button class="btn ghost sm" data-verify="${b.id}" data-action="reject">Reject</button>
+            </td>
+          </tr>`).join("")
+        : `<tr><td colspan="9" class="empty">No pending payments.</td></tr>`;
+
+      $("billsBody").innerHTML = bills.length
+        ? bills.map(b => `<tr>
+            <td>${RH.esc(b.tenant_name)}</td>
+            <td>${RH.esc(b.listing_title || b.unit || "—")}</td>
+            <td>${b.month}</td>
+            <td>₱${Number(b.total).toLocaleString()}</td>
+            <td>${b.due_date || "—"}</td>
+            <td>${b.paid_on || "—"}</td>
+            <td>${RH.esc(b.reference || "—")}</td>
+            <td>${badge(b.status)}</td>
+            <td></td>
+          </tr>`).join("")
+        : `<tr><td colspan="9" class="empty">No bills yet.</td></tr>`;
+    }
+
+    /* load tenants */
+    async function loadTenants() {
+      const r = await fetch("/api/tenants", { credentials: "same-origin" }).catch(() => null);
+      if (!r?.ok) return;
+      const { tenants } = await r.json();
+      const listingResponse = await fetch("/api/my-listings", { credentials: "same-origin", cache: "no-store" }).catch(() => null);
+      if (listingResponse?.ok) {
+        const { listings } = await listingResponse.json();
+        $("tenantListing").innerHTML = '<option value="">Not linked to a listing</option>' +
+          listings.map(listing => `<option value="${listing.id}">${RH.esc(listing.title)}</option>`).join("");
+      }
+
+      $("billTenant").innerHTML = tenants
+        .filter(t => t.status === "Active")
+        .map(t => `<option value="${t.id}">${RH.esc(t.name)} — ${RH.esc(t.unit)}</option>`)
+        .join("");
+
+      $("tenantsBody").innerHTML = tenants.length
+        ? tenants.map(t => `<tr>
+            <td>${RH.esc(t.name)}</td>
+            <td>${RH.esc(t.unit)}</td>
+            <td>₱${Number(t.rent).toLocaleString()}</td>
+            <td>${badge(t.status === "Active" ? "Active" : "Inactive")}</td>
+          </tr>`).join("")
+        : `<tr><td colspan="4" class="empty">No tenants yet.</td></tr>`;
+    }
+
+    /* verify buttons */
+    document.addEventListener("click", async e => {
+      const btn = e.target.closest("[data-verify]");
+      if (!btn) return;
+      btn.disabled = true;
+      const r = await fetch(`/api/bills/${btn.dataset.verify}/verify`, {
+        method: "POST", credentials: "same-origin",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ action: btn.dataset.action })
+      }).catch(() => null);
+      const d = r ? await r.json() : { error: "Could not reach server." };
+      toast(d.message || d.error);
+      if (r?.ok) { loadBills(); loadStats(); }
+      btn.disabled = false;
+    });
+
+    /* open/close dialogs */
+    document.addEventListener("click", e => {
+      const btn = e.target.closest("[data-act]");
+      if (btn?.dataset.act === "addBill")   $("billDlg").showModal();
+      if (btn?.dataset.act === "addTenant") $("tenantDlg").showModal();
+      if (e.target.closest("[data-close]")) e.target.closest("dialog").close();
+    });
+
+    /* add bill */
+    $("billForm").addEventListener("submit", async e => {
+      e.preventDefault();
+      $("billErr").textContent = "";
+      const fd = new FormData(e.target);
+      const submit = e.target.querySelector("[type=submit]");
+      submit.disabled = true;
+      const r = await fetch("/api/bills", {
+        method: "POST", credentials: "same-origin",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ tenant_id: $("billTenant").value, month: fd.get("month"), due_date: fd.get("due"), extra: fd.get("extra") || 0 })
+      }).catch(() => null);
+      const d = r ? await r.json() : { error: "Could not reach server." };
+      if (!r?.ok) { $("billErr").textContent = d.error; }
+      else { $("billDlg").close(); e.target.reset(); toast("Bill added."); loadBills(); loadStats(); }
+      submit.disabled = false;
+    });
+
+    /* add tenant */
+    $("tenantForm").addEventListener("submit", async e => {
+      e.preventDefault();
+      $("tenantErr").textContent = "";
+      const fd = new FormData(e.target);
+      const submit = e.target.querySelector("[type=submit]");
+      submit.disabled = true;
+      const r = await fetch("/api/tenants", {
+        method: "POST", credentials: "same-origin",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ name: fd.get("name"), unit: fd.get("unit"), rent: fd.get("rent"), email: fd.get("email"), listing_id: fd.get("listing_id") || null })
+      }).catch(() => null);
+      const d = r ? await r.json() : { error: "Could not reach server." };
+      if (!r?.ok) { $("tenantErr").textContent = d.error; }
+      else { $("tenantDlg").close(); e.target.reset(); toast("Tenant added."); loadTenants(); loadStats(); }
+      submit.disabled = false;
+    });
+
+    /* ---------- listings ---------- */
+    const NO_PHOTO = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><path d="M3 11l9-7 9 7v9a1 1 0 0 1-1 1h-5v-6H9v6H4a1 1 0 0 1-1-1z"/></svg>';
+    const MAX_PHOTOS = 6, MAX_BYTES = 2 * 1024 * 1024;
+    let picked = [];          // [{ file, url }]
+
+    async function loadListings() {
+      const box = $("myListings");
+      const r = await fetch("/api/my-listings", { credentials: "same-origin", cache: "no-store" }).catch(() => null);
+      if (!r?.ok) { box.innerHTML = '<p class="empty">Could not load your listings.</p>'; return; }
+      const { listings } = await r.json();
+      box.innerHTML = listings.length ? listings.map(l => `
+        <article class="lcard">
+          <div class="limg">${l.image ? `<img src="${RH.esc(l.image)}" alt="" loading="lazy" />` : NO_PHOTO}
+            ${l.images.length > 1 ? `<span class="lcount">${l.images.length} photos</span>` : ""}</div>
+          <div class="lbody">
+            <h3>${RH.esc(l.title)}</h3>
+            <span class="lstatus ${RH.esc(l.status)}">${l.status === "available" ? "Available" : RH.esc(l.status)}</span>
+            <p class="lmeta">${RH.esc(l.type)} · ${RH.esc(l.location)}</p>
+            <p class="lmeta">${l.beds ? l.beds + " bed" : "Studio"} · ${l.baths} bath</p>
+            <p class="lprice">₱${Number(l.price).toLocaleString()} / month</p>
+            <div class="lact"><button class="btn ghost sm" data-del="${l.id}">Delete</button></div>
+          </div>
+        </article>`).join("")
+        : '<p class="empty">You haven\'t posted any homes yet. Click “+ Post a listing”.</p>';
+    }
+
+    function renderThumbs() {
+      $("lThumbs").innerHTML = picked.map((p, i) =>
+        `<div class="th${i === 0 ? " first" : ""}"><img src="${p.url}" alt="" /><button type="button" data-rm="${i}" aria-label="Remove photo">×</button></div>`).join("");
+    }
+    function resetListingForm() {
+      picked.forEach(p => URL.revokeObjectURL(p.url));
+      picked = []; renderThumbs();
+      $("listingForm").reset(); $("listingErr").textContent = "";
+    }
+
+    $("lPhotos").addEventListener("change", e => {
+      $("listingErr").textContent = "";
+      for (const f of e.target.files) {
+        if (picked.length >= MAX_PHOTOS) { $("listingErr").textContent = "You can upload up to " + MAX_PHOTOS + " photos."; break; }
+        if (!/^image\/(png|jpeg|webp)$/.test(f.type)) { $("listingErr").textContent = "Only JPG, PNG or WEBP images are allowed."; continue; }
+        if (f.size > MAX_BYTES) { $("listingErr").textContent = "“" + f.name + "” is over 2 MB."; continue; }
+        picked.push({ file: f, url: URL.createObjectURL(f) });
+      }
+      e.target.value = "";
+      renderThumbs();
+    });
+    $("lThumbs").addEventListener("click", e => {
+      const b = e.target.closest("[data-rm]"); if (!b) return;
+      const [gone] = picked.splice(Number(b.dataset.rm), 1);
+      URL.revokeObjectURL(gone.url); renderThumbs();
+    });
+
+    document.addEventListener("click", e => {
+      if (e.target.closest('[data-act="addListing"]')) { resetListingForm(); $("listingDlg").showModal(); }
+    });
+
+    $("listingForm").addEventListener("submit", async e => {
+      e.preventDefault();
+      const err = $("listingErr"); err.textContent = "";
+      const f = e.target, title = f.title.value.trim(), loc = f.location.value.trim(), price = Number(f.price.value);
+      if (!title) { err.textContent = "Add a title."; return; }
+      if (!loc) { err.textContent = "Add a location."; return; }
+      if (!(price > 0)) { err.textContent = "Enter a monthly price above 0."; return; }
+      const fd = new FormData();
+      ["title", "location", "type", "price", "beds", "baths", "description"].forEach(k => fd.append(k, f[k].value.trim()));
+      picked.forEach(p => fd.append("photo", p.file));
+      const btn = $("listingSave"); btn.disabled = true; btn.textContent = "Posting…";
+      const r = await fetch("/api/listings", { method: "POST", body: fd, credentials: "same-origin" }).catch(() => null);
+      const d = r ? await r.json().catch(() => ({})) : { error: "Could not reach the server." };
+      btn.disabled = false; btn.textContent = "Post listing";
+      if (!r?.ok) { err.textContent = d.error || "Could not post your home."; return; }
+      $("listingDlg").close(); resetListingForm();
+      toast("Your property listing has been created successfully.");
+      loadListings();
+      loadStats();
+    });
+
+    $("myListings").addEventListener("click", async e => {
+      const b = e.target.closest("[data-del]");
+      if (!b || !confirm("Delete this listing? Its photos will be removed too.")) return;
+      b.disabled = true;
+      const r = await fetch("/api/listings/" + b.dataset.del, { method: "DELETE", credentials: "same-origin" }).catch(() => null);
+      const d = r ? await r.json().catch(() => ({})) : { error: "Could not reach the server." };
+      toast(d.message || d.error || "Done.");
+      loadListings();
+      loadStats();
+    });
+
+    loadStats();
+    loadBills();
+    loadTenants();
+    loadListings();
+  })();
+  </script>
+</body>
+</html>

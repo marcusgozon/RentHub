@@ -1,0 +1,197 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>List a home - RentHub</title>
+  <link rel="stylesheet" href="../css/style.css" />
+  <link rel="stylesheet" href="../css/pages.css" />
+  <link rel="icon" type="image/png" href="../img/renthub_logo.png" />
+</head>
+<body data-root="../">
+    <div class="page-loader" id="pageLoader" role="status" aria-label="Loading">
+        <img src="../img/renthub_logo.png" alt="RentHub" class="loader-logo" />
+    </div>
+
+  <header class="site-header">
+    <a href="../index.html" class="logo"><img src="../img/renthub_logo.png" alt="RentHub Logo" class="logoimg" /></a>
+    <button class="menu-btn" id="menuBtn" aria-label="Toggle menu"><span></span><span></span><span></span></button>
+    <nav id="nav">
+      <ul class="nav-links">
+        <li><a href="../index.html">Home</a></li>
+        <li><a href="browse.html">Browse</a></li>
+        <li><a href="post-listing.html">List a Home</a></li>
+        <li><a href="myrentals.html">My Rentals</a></li>
+      </ul>
+    </nav>
+    <div class="auth" id="auth">
+      <a href="login.html"><button class="btn-primary">Log In</button></a>
+      <a href="signup.html" class="signup"><button class="btn-primary">Sign Up</button></a>
+    </div>
+  </header>
+
+  <main class="page">
+    <h1>List a home</h1>
+    <p class="sub">Add your place and a photo so tenants can find it on Browse.</p>
+
+    <form class="panel listing-panel" id="listingForm" novalidate>
+      <label>PHOTO</label>
+      <label class="photo-drop" for="photo" id="drop">
+        <span id="dropText">Click to upload a photo<br><small>JPG, PNG or WEBP, up to 2 MB</small></span>
+      </label>
+      <input id="photo" type="file" accept="image/png,image/jpeg,image/webp" hidden />
+      <button type="button" class="link-btn" id="removePhoto" hidden>Remove photo</button>
+
+      <label for="title">TITLE</label>
+      <input id="title" type="text" maxlength="120" placeholder="e.g. Cozy 1BR condo" />
+      <label for="location">LOCATION</label>
+      <input id="location" type="text" maxlength="160" placeholder="e.g. Cubao, Quezon City" />
+
+      <div class="listing-grid">
+        <div><label for="type">TYPE</label>
+          <select id="type"><option>Studio</option><option>Condo</option><option>Apartment</option><option>House</option><option>Bedspace</option></select></div>
+        <div><label for="price">PRICE / MONTH (₱)</label><input id="price" type="number" min="1" placeholder="15000" /></div>
+        <div class="listing-grid two">
+          <div><label for="beds">BEDS</label><input id="beds" type="number" min="0" value="1" /></div>
+          <div><label for="baths">BATHS</label><input id="baths" type="number" min="1" value="1" /></div>
+        </div>
+      </div>
+
+      <label for="desc">DESCRIPTION (optional)</label>
+      <textarea id="desc" placeholder="Furnishings, house rules, nearby places…"></textarea>
+
+      <p class="error" id="err"></p>
+      <p class="ok" id="ok"></p>
+      <button class="btn-primary" type="submit" id="saveBtn">Post home</button>
+    </form>
+
+    <section class="my-listings">
+      <h2>Your listings</h2>
+      <div class="cards" id="mine"></div>
+    </section>
+  </main>
+  <footer class="site-footer"><p>&copy; 2026 RentHub. All rights reserved.</p></footer>
+  <script src="../js/script.js"></script>
+  <script>
+    {
+      const $ = id => document.getElementById(id);
+      // Demo mode: no login needed. Without a landlord login, homes are saved in this browser only.
+      const u = RH.user();
+      const real = !!(u && u.role === "landlord");
+      if (real) { location.replace("landlord.html#listings"); }   // landlords post from their dashboard now
+      const DEMO_KEY = "rh_demo_listings";
+      const demoList = () => RH.store.get(DEMO_KEY, []);
+      if (!real) document.querySelector(".sub").textContent = "Demo mode: no login needed. Homes you post here are saved in this browser and appear on Browse.";
+      const NO_PHOTO = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><path d="M3 11l9-7 9 7v9a1 1 0 0 1-1 1h-5v-6H9v6H4a1 1 0 0 1-1-1z"/></svg>';
+      const DROP_HTML = $("dropText").outerHTML;
+      const SUCCESS_MSG = "Your property listing has been created successfully.";
+      let picked = null, blobUrl = null, submitting = false;
+
+      const toDataUrl = file => new Promise((resolve, reject) => {
+        const img = new Image(), url = URL.createObjectURL(file);
+        img.onload = () => {
+          const s = Math.min(1, 900 / Math.max(img.width, img.height));
+          const c = document.createElement("canvas");
+          c.width = Math.round(img.width * s); c.height = Math.round(img.height * s);
+          c.getContext("2d").drawImage(img, 0, 0, c.width, c.height);
+          URL.revokeObjectURL(url); resolve(c.toDataURL("image/jpeg", 0.8));
+        };
+        img.onerror = reject; img.src = url;
+      });
+
+      function resetPhoto() {
+        picked = null; $("photo").value = ""; $("removePhoto").hidden = true;
+        if (blobUrl) { URL.revokeObjectURL(blobUrl); blobUrl = null; }
+        $("drop").innerHTML = DROP_HTML;
+      }
+
+      $("photo").addEventListener("change", e => {
+        const f = e.target.files[0];
+        $("err").textContent = ""; $("ok").textContent = "";
+        if (!f) return;
+        if (!/^image\/(png|jpeg|webp)$/.test(f.type)) { $("err").textContent = "Please choose a JPG, PNG or WEBP image."; e.target.value = ""; return; }
+        if (f.size > 2 * 1024 * 1024) { $("err").textContent = "That photo is too big. Please choose one under 2 MB."; e.target.value = ""; return; }
+        picked = f;
+        if (blobUrl) URL.revokeObjectURL(blobUrl);
+        blobUrl = URL.createObjectURL(f);
+        $("drop").innerHTML = '<img src="' + blobUrl + '" alt="Photo preview" />';
+        $("removePhoto").hidden = false;
+      });
+      $("removePhoto").addEventListener("click", resetPhoto);
+
+      async function loadMine() {
+        try {
+          let listings;
+          if (real) {
+            const r = await fetch("/api/my-listings", { credentials: "same-origin" });
+            if (!r.ok) return;
+            listings = (await r.json()).listings;
+          } else listings = demoList();
+          $("mine").innerHTML = listings.length ? listings.map(l => `
+            <article class="card">
+              <div class="card-img">${l.image ? `<img src="${RH.esc(l.image)}" alt="" loading="lazy" />` : NO_PHOTO}</div>
+              <span class="tag">${RH.esc(l.type)}</span><h3>${RH.esc(l.title)}</h3>
+              <p class="loc">${RH.esc(l.location)}</p>
+              <p class="price">${RH.peso(l.price)} / month</p>
+              <div class="actions"><button class="btn-secondary" data-del="${l.id}">Delete</button></div></article>`).join("")
+            : '<div class="empty" style="grid-column:1/-1"><p>You haven\'t posted any homes yet.</p></div>';
+        } catch (e) {}
+      }
+      $("mine").addEventListener("click", async e => {
+        const b = e.target.closest("[data-del]"); if (!b || !confirm("Delete this listing?")) return;
+        if (real) await fetch("/api/listings/" + b.dataset.del, { method: "DELETE", credentials: "same-origin" });
+        else RH.store.set(DEMO_KEY, demoList().filter(l => String(l.id) !== b.dataset.del));
+        loadMine();
+      });
+
+      // Called only after the listing is confirmed saved. The button stays disabled
+      // until the page changes, so a second click can't create a duplicate.
+      function saved() {
+        $("err").textContent = "";
+        $("ok").textContent = SUCCESS_MSG;
+        setTimeout(() => { location.href = "browse.html"; }, 1200);
+      }
+
+      $("listingForm").addEventListener("submit", async e => {
+        e.preventDefault();
+        if (submitting) return;                       // ignore repeated clicks / Enter presses
+        $("err").textContent = ""; $("ok").textContent = "";
+        const title = $("title").value.trim(), loc = $("location").value.trim(), price = Number($("price").value);
+        if (!title || !loc) { $("err").textContent = "Add a title and a location."; return; }
+        if (!(price > 0)) { $("err").textContent = "Enter a monthly price above 0."; return; }
+
+        const btn = $("saveBtn");
+        submitting = true; btn.disabled = true; btn.textContent = "Posting…";
+        let ok = false;
+        try {
+          if (!real) {
+            const image = picked ? await toDataUrl(picked) : null;
+            RH.store.set(DEMO_KEY, [{ id: Date.now(), title, location: loc, type: $("type").value, price,
+              beds: Number($("beds").value) || 0, baths: Number($("baths").value) || 1,
+              description: $("desc").value.trim(), image }].concat(demoList()));
+            ok = true;
+          } else {
+            const fd = new FormData();
+            fd.append("title", title); fd.append("location", loc); fd.append("type", $("type").value);
+            fd.append("price", price); fd.append("beds", $("beds").value || 0); fd.append("baths", $("baths").value || 1);
+            fd.append("description", $("desc").value.trim());
+            if (picked) fd.append("photo", picked);
+            const r = await fetch("/api/listings", { method: "POST", body: fd, credentials: "same-origin" });
+            const d = await r.json().catch(() => ({}));
+            if (!r.ok) $("err").textContent = d.error || "Could not post your home.";
+            else ok = true;
+          }
+        } catch (err) {
+          $("err").textContent = real
+            ? "Can't reach the backend. Make sure the RentHub Python server is running."
+            : "Could not save that photo here. Try a smaller image.";
+        }
+        if (ok) { saved(); return; }                  // stay disabled while redirecting
+        // Failure: keep everything the user typed, re-enable the button, no redirect.
+        submitting = false; btn.disabled = false; btn.textContent = "Post home";
+      });
+      loadMine();
+    }
+  </script>
+</body>
+</html>

@@ -32,7 +32,7 @@
 
   <main class="page">
     <h1>Edit profile</h1>
-    <p class="sub">Update your photo and mobile number.</p>
+    <p class="sub">Update your name, photo, and mobile number.</p>
 
     <form class="panel profile-panel" id="profileForm" novalidate>
       <div class="avatar-block">
@@ -46,10 +46,10 @@
       </div>
 
       <label for="fullName">FULL NAME</label>
-      <input id="fullName" type="text" disabled />
+      <input id="fullName" name="full_name" type="text" maxlength="100" autocomplete="name" required />
       <label for="email">EMAIL</label>
       <input id="email" type="email" disabled />
-      <p class="hint">Name and email can't be changed here.</p>
+      <p class="hint">Your email address can't be changed here.</p>
 
       <label for="phone">MOBILE NUMBER</label>
       <input id="phone" name="phone" type="tel" inputmode="tel" placeholder="09171234567" maxlength="16" autocomplete="tel" />
@@ -59,7 +59,7 @@
       <button class="btn-primary" type="submit" id="saveBtn">Save changes</button>
     </form>
   </main>
-  <footer class="site-footer"><p>&copy; 2024 RentHub. All rights reserved.</p></footer>
+  <footer class="site-footer"><p>&copy; 2026 RentHub. All rights reserved.</p></footer>
   <script src="../js/script.js"></script>
   <script>
     if (RH.requireLogin()) {
@@ -110,12 +110,18 @@
       $("profileForm").addEventListener("submit", async e => {
         e.preventDefault();
         $("err").textContent = ""; $("ok").textContent = "";
+        const fullName = $("fullName").value.trim();
+        if (!fullName || fullName.length > 100) {
+          $("err").textContent = "Enter a full name between 1 and 100 characters.";
+          $("fullName").focus(); return;
+        }
         const phone = $("phone").value.trim();
         if (phone && !/^(\+63|63|0)9\d{9}$/.test(phone.replace(/[\s-]/g, ""))) {
           $("err").textContent = "Enter a valid mobile number, like 09171234567.";
           $("phone").focus(); return;
         }
         const fd = new FormData();
+        fd.append("full_name", fullName);
         fd.append("phone", phone);
         if (pickedFile) fd.append("photo", pickedFile);
         else if (removeRequested) fd.append("remove_photo", "1");
@@ -127,6 +133,8 @@
           if (!r.ok) { $("err").textContent = d.error || "Could not save your profile."; return; }
           pickedFile = null; removeRequested = false; $("photo").value = "";
           fill(d.profile);
+          const sessionUser = RH.user();
+          if (sessionUser) RH.store.set("rh_session", { ...sessionUser, name: d.profile.name });
           RH.setAvatar(d.profile.avatar);
           $("ok").textContent = "Profile saved.";
         } catch (err) {

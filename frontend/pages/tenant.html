@@ -1,0 +1,467 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Tenant Dashboard - RentHub</title>
+  <link rel="stylesheet" href="../css/style.css" />
+  <link rel="stylesheet" href="../css/pages.css" />
+  <style>
+    .available-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(14rem, 1fr)); gap: 0.875rem; }
+    .available-card { min-width: 0; overflow: hidden; border: 1px solid var(--line); border-radius: 0.875rem; background: #fff; }
+    .available-image { display: grid; place-items: center; height: 9rem; overflow: hidden; background: var(--light); color: var(--dark); font-size: 2.5rem; }
+    .available-image img { width: 100%; height: 100%; object-fit: cover; }
+    .available-body { display: flex; flex-direction: column; align-items: flex-start; gap: 0.3rem; padding: 0.875rem; }
+    .available-status { padding: 0.18rem 0.5rem; border-radius: 999px; background: #e4efdf; color: #28542d; font-size: 0.68rem; font-weight: 700; }
+    .available-body h3 { font-size: 0.95rem; line-height: 1.4; overflow-wrap: anywhere; }
+    .available-meta { color: var(--gray); font-size: 0.78rem; line-height: 1.45; }
+    .available-price { margin: 0.2rem 0; font-size: 1.05rem; font-weight: 700; }
+    .available-price small { color: var(--gray); font-size: 0.78rem; font-weight: 400; }
+    .available-body .btn { margin-top: 0.25rem; }
+    @media (max-width: 520px) { .available-grid { grid-template-columns: 1fr; } }
+  </style>
+  <link rel="icon" type="image/png" href="../img/renthub_logo.png" />
+</head>
+<body class="dash tenant" data-root="../">
+
+  <div class="page-loader" id="pageLoader" role="status" aria-label="Loading">
+    <img src="../img/renthub_logo.png" alt="RentHub" class="loader-logo" />
+  </div>
+
+  <header class="site-header">
+    <a href="../index.html" class="logo">
+      <img src="../img/renthub_logo.png" alt="RentHub Logo" class="logoimg" />
+    </a>
+    <button class="menu-btn" id="menuBtn" aria-label="Toggle menu">
+      <span></span><span></span><span></span>
+    </button>
+    <nav id="nav">
+      <ul class="nav-links">
+        <li><a href="../index.html">Home</a></li>
+        <li><a href="browse.html">Browse</a></li>
+        <li><a href="myrentals.html">My Rentals</a></li>
+        <li><a href="extendstay.html">Extend Stay</a></li>
+      </ul>
+    </nav>
+    <div class="auth" id="auth">
+      <a href="login.html"><button class="btn-primary">Log In</button></a>
+      <a href="signup.html" class="signup"><button class="btn-primary">Sign Up</button></a>
+    </div>
+  </header>
+
+  <main class="page" id="app">
+
+    <!-- Welcome banner -->
+    <section class="card hello">
+      <a class="avatar" id="avatar" href="profile.html" aria-label="Open profile"></a>
+      <div>
+        <h1 id="welcome">Welcome back</h1>
+        <p>Here's your rental information and payment status.</p>
+        <dl>
+          <div><dt>Email</dt><dd id="uEmail">—</dd></div>
+          <div><dt>Name</dt><dd id="uName">—</dd></div>
+          <div><dt>Role</dt><dd>Tenant</dd></div>
+          <div><dt>Member since</dt><dd id="uSince">—</dd></div>
+        </dl>
+      </div>
+      <a class="btn edit" href="profile.html">✎ Edit Profile</a>
+    </section>
+
+    <!-- Stat tiles -->
+    <div class="stats">
+      <div class="stat">
+        <span>Active rentals</span>
+        <b id="sActive">—</b>
+        <small>Currently renting</small>
+      </div>
+      <div class="stat">
+        <span>Monthly rent</span>
+        <b id="sRent">—</b>
+        <small>Total for active rentals</small>
+      </div>
+      <div class="stat" id="sPendingBox">
+        <span>Next payment</span>
+        <b id="sNext">—</b>
+        <small id="sNextNote"></small>
+      </div>
+      <div class="stat" id="sOverdueBox">
+        <span>Outstanding balance</span>
+        <b id="sBal">—</b>
+        <small id="sBalNote"></small>
+      </div>
+    </div>
+
+    <!-- My rental properties -->
+    <section class="card">
+      <div class="bar">
+        <h2>My rental properties</h2>
+        <a class="btn ghost sm" href="browse.html">Browse listings</a>
+      </div>
+      <div id="props">
+        <p style="color:var(--gray);text-align:center;padding:1.5rem 0;">Loading…</p>
+      </div>
+    </section>
+
+    <!-- Available listings -->
+    <section class="card">
+      <div class="bar">
+        <h2>Available listings</h2>
+        <a class="btn ghost sm" href="browse.html">View all homes</a>
+      </div>
+      <p class="note">Homes currently available to request from landlords.</p>
+      <div class="available-grid" id="availableListings">
+        <p class="empty">Loading available listings…</p>
+      </div>
+    </section>
+
+    <!-- Monthly payment tracker -->
+    <section class="card">
+      <div class="bar">
+        <h2>Monthly payment tracker</h2>
+        <div class="filters-inline">
+          <select id="fStatus" aria-label="Filter by status">
+            <option value="">All payments</option>
+            <option>Paid</option>
+            <option>Unpaid</option>
+            <option>Overdue</option>
+            <option>Pending</option>
+          </select>
+          <input id="fSearch" type="search" placeholder="Search by property…" />
+        </div>
+      </div>
+      <div class="tbl">
+        <table>
+          <thead>
+            <tr>
+              <th>Month</th>
+              <th>Property</th>
+              <th>Total</th>
+              <th>Due date</th>
+              <th>Date paid</th>
+              <th>Reference</th>
+              <th>Status</th>
+              <th>Action</th>
+            </tr>
+          </thead>
+          <tbody id="trackBody">
+            <tr><td colspan="8" class="empty">Loading…</td></tr>
+          </tbody>
+        </table>
+      </div>
+    </section>
+
+    <!-- Payment history -->
+    <section class="card">
+      <div class="bar">
+        <h2>Payment history</h2>
+        <span class="note">Verified payments only</span>
+      </div>
+      <div class="tbl">
+        <table>
+          <thead>
+            <tr>
+              <th>Date paid</th>
+              <th>Month</th>
+              <th>Property</th>
+              <th>Amount</th>
+              <th>Reference</th>
+              <th>Verification</th>
+            </tr>
+          </thead>
+          <tbody id="histBody">
+            <tr><td colspan="6" class="empty">Loading…</td></tr>
+          </tbody>
+        </table>
+      </div>
+    </section>
+
+  </main>
+
+  <!-- Submit payment dialog -->
+  <dialog id="payDlg" class="form-dlg">
+    <h2>Submit payment</h2>
+    <p style="font-size:0.85rem;color:var(--gray);margin:0.25rem 0 0.75rem;">Enter your payment reference so your landlord can verify it.</p>
+    <form id="payForm" novalidate>
+      <input type="hidden" id="payBillId" />
+      <label>Reference number
+        <input name="reference" id="payRef" placeholder="e.g. GCash ref 1234567890" autocomplete="off" />
+      </label>
+      <label>Date paid
+        <input type="date" name="paid_on" id="payDate" />
+      </label>
+      <p class="error" id="payErr"></p>
+      <div class="actions" style="display:flex;gap:0.5rem;margin-top:1rem;">
+        <button type="button" class="btn ghost" data-close>Cancel</button>
+        <button type="submit" class="btn">Submit</button>
+      </div>
+    </form>
+  </dialog>
+
+  <div id="toast"></div>
+
+  <footer class="site-footer"><p>&copy; 2026 RentHub. All rights reserved.</p></footer>
+
+  <script src="../js/script.js"></script>
+  <script>
+  (function () {
+    const $ = id => document.getElementById(id);
+    const SVG_USER = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="8" r="4"/><path d="M4 21c0-4.4 3.6-7 8-7s8 2.6 8 7"/></svg>';
+
+    /* user info */
+    function paintAvatar(src) {
+      $("avatar").innerHTML = src ? `<img src="${RH.esc(src)}" alt="" />` : SVG_USER;
+    }
+    function fillUser(u) {
+      $("welcome").textContent = "Welcome back, " + (u.name || "").split(" ")[0] + "!";
+      $("uEmail").textContent = u.email || "—";
+      $("uName").textContent = u.name || "—";
+      $("uSince").textContent = u.created_at ? u.created_at.slice(0, 7) : "—";
+      if (Object.prototype.hasOwnProperty.call(u, "avatar")) paintAvatar(u.avatar);
+    }
+    const cached = RH.user();
+    if (cached) {
+      fillUser(cached);
+      paintAvatar(cached.avatar);
+    }
+    fetch("/api/me", { credentials: "same-origin" })
+      .then(r => r.ok ? r.json() : null)
+      .then(d => d?.user && fillUser(d.user))
+      .catch(() => {});
+    fetch("/api/profile", { credentials: "same-origin" })
+      .then(r => r.ok ? r.json() : null)
+      .then(d => {
+        if (!d?.profile) return;
+        paintAvatar(d.profile.avatar);
+        RH.setAvatar(d.profile.avatar);
+      })
+      .catch(() => {});
+
+    /* toast */
+    let _t;
+    function toast(msg) {
+      const el = $("toast");
+      el.textContent = msg;
+      el.classList.add("show");
+      clearTimeout(_t);
+      _t = setTimeout(() => el.classList.remove("show"), 3000);
+    }
+
+    /* badge */
+    function badge(s) {
+      return `<span class="badge ${s}">${s}</span>`;
+    }
+
+    async function loadAvailableListings() {
+      const box = $("availableListings");
+      const response = await fetch("/api/listings", {
+        credentials: "same-origin",
+        cache: "no-store"
+      }).catch(() => null);
+      if (!response || !response.ok) {
+        box.innerHTML = '<p class="empty">Could not load available listings. Please try again later.</p>';
+        return;
+      }
+      const data = await response.json();
+      const listings = (Array.isArray(data) ? data : (data.listings || []))
+        .filter(listing => listing.available && listing.status === "available");
+      box.innerHTML = listings.length
+        ? listings.slice(0, 6).map(listing => `
+          <article class="available-card">
+            <div class="available-image">${listing.image
+              ? `<img src="${RH.esc(listing.image)}" alt="${RH.esc(listing.title)}" loading="lazy" />`
+              : '<span aria-hidden="true">⌂</span>'}</div>
+            <div class="available-body">
+              <span class="available-status">Available</span>
+              <h3>${RH.esc(listing.title)}</h3>
+              <p class="available-meta">${RH.esc(listing.type)} · ${RH.esc(listing.location)}</p>
+              <p class="available-meta">${listing.beds ? listing.beds + " bed" : "Studio"} · ${listing.baths} bath</p>
+              <p class="available-price">${RH.peso(listing.price)} <small>/ month</small></p>
+              <a class="btn sm" href="browse.html?location=${encodeURIComponent(listing.title)}">View in Browse</a>
+            </div>
+          </article>`).join("")
+        : '<p class="empty">There are no homes available right now. Check back soon.</p>';
+    }
+
+    /* load stats */
+    async function loadStats() {
+      const r = await fetch("/api/tenant/stats", { credentials: "same-origin" }).catch(() => null);
+      const d = r?.ok ? await r.json() : {};
+      const activeRentals = RH.myRentals().filter(rental => RH.status(rental) === "Active");
+      const activeCount = Number(d.active || 0) + activeRentals.length;
+      const monthlyRent = Number(d.monthly || 0) + activeRentals.reduce((sum, rental) => sum + Number(rental.price || 0), 0);
+      $("sActive").textContent = activeCount;
+      $("sRent").textContent = monthlyRent > 0 ? "₱" + monthlyRent.toLocaleString() : "—";
+      $("sBal").textContent = "₱" + Number(d.balance || 0).toLocaleString();
+      $("sNext").textContent = d.next_due || "—";
+      $("sOverdueBox").classList.toggle("owed", Number(d.balance || 0) > 0);
+    }
+
+    /* bills */
+    let allBills = [];
+    let listingPhotos = []
+      .concat(RH.LISTINGS)
+      .concat(RH.store.get("rh_demo_listings", []));
+
+    function rentalPhoto(rental) {
+      const savedPhoto = rental.images?.[0] || rental.image;
+      if (savedPhoto) return savedPhoto;
+      const listing = listingPhotos.find(item =>
+        String(item.title || "").trim().toLowerCase() === String(rental.title || "").trim().toLowerCase()
+      ) || listingPhotos.find(item => String(item.id) === String(rental.listingId));
+      return listing?.images?.[0] || listing?.image || null;
+    }
+
+    async function loadBills() {
+      const r = await fetch("/api/bills", { credentials: "same-origin" }).catch(() => null);
+      if (!r?.ok) return;
+      allBills = (await r.json()).bills || [];
+      renderProps();
+      renderTracker();
+      renderHistory();
+    }
+
+    /* rental properties */
+    function renderProps() {
+      const localRentals = RH.myRentals()
+        .filter(rental => RH.status(rental) !== "Ended")
+        .sort((a, b) => b.moveIn.localeCompare(a.moveIn));
+      const seen = new Set(localRentals.map(rental => rental.title.trim().toLowerCase()));
+      const billProps = allBills.filter(b => {
+        const key = (b.unit || "").trim().toLowerCase();
+        if (!key || seen.has(key)) return false;
+        seen.add(key);
+        return true;
+      });
+      const rentalProps = localRentals.map(rental => {
+        const status = RH.status(rental);
+        const photo = rentalPhoto(rental);
+        return `
+            <div class="prop">
+              <div class="thumb">${photo ? `<img src="${RH.esc(photo)}" alt="${RH.esc(rental.title)}" loading="lazy" />` : "🏠"}</div>
+              <div>
+                <h3>${RH.esc(rental.title)}</h3>
+                <p class="meta">${RH.esc(rental.location)}</p>
+                <p class="price">${RH.peso(rental.price)} <small>/ mo</small></p>
+                <p class="meta">${RH.nice(rental.moveIn)} to ${RH.nice(RH.endDate(rental))} · ${status}</p>
+                ${rental.payment?.method ? `<p class="meta">Paid with ${RH.esc(rental.payment.method)}</p>` : ""}
+              </div>
+              <div class="side"><a class="btn ghost sm" href="myrentals.html">View rental</a></div>
+            </div>`;
+      });
+      const props = billProps.map(b => {
+        const photo = rentalPhoto({ title: b.unit });
+        return `
+            <div class="prop">
+              <div class="thumb">${photo ? `<img src="${RH.esc(photo)}" alt="${RH.esc(b.unit)}" loading="lazy" />` : "🏠"}</div>
+              <div>
+                <h3>${RH.esc(b.unit)}</h3>
+                <p class="price">₱${Number(b.rent).toLocaleString()} <small>/ mo</small></p>
+              </div>
+              <div class="side"></div>
+            </div>`;
+      });
+      const combined = rentalProps.concat(props);
+      $("props").innerHTML = combined.length
+        ? combined.join("")
+        : `<p style="color:var(--gray);text-align:center;padding:1.5rem 0;">No active rentals. <a href="browse.html" style="color:var(--dark);">Browse listings</a></p>`;
+    }
+
+    async function loadListingPhotos() {
+      const r = await fetch("/api/listings", { credentials: "same-origin", cache: "no-store" }).catch(() => null);
+      if (!r?.ok) return;
+      const d = await r.json();
+      const apiListings = Array.isArray(d) ? d : (d.listings || []);
+      listingPhotos = listingPhotos.concat(apiListings);
+      renderProps();
+    }
+
+    /* tracker */
+    function renderTracker() {
+      const sf = $("fStatus").value;
+      const qf = ($("fSearch").value || "").toLowerCase();
+      const rows = allBills.filter(b =>
+        (!sf || b.status === sf) &&
+        (!qf || (b.listing_title || b.unit || "").toLowerCase().includes(qf))
+      );
+      $("trackBody").innerHTML = rows.length
+        ? rows.map(b => `<tr>
+            <td>${b.month}</td>
+            <td>${RH.esc(b.listing_title || b.unit || "—")}</td>
+            <td>₱${Number(b.total).toLocaleString()}</td>
+            <td>${b.due_date || "—"}</td>
+            <td>${b.paid_on || "—"}</td>
+            <td>${RH.esc(b.reference || "—")}</td>
+            <td>${badge(b.status)}</td>
+            <td>${b.status === "Unpaid" || b.status === "Overdue"
+              ? `<button class="btn sm" data-pay="${b.id}">Pay</button>`
+              : b.status === "Pending"
+              ? `<span style="font-size:0.8rem;color:var(--gray);">Awaiting verify</span>`
+              : ""}</td>
+          </tr>`).join("")
+        : `<tr><td colspan="8" class="empty">No bills found.</td></tr>`;
+    }
+
+    /* history */
+    function renderHistory() {
+      const paid = allBills.filter(b => b.status === "Paid");
+      $("histBody").innerHTML = paid.length
+        ? paid.map(b => `<tr>
+            <td>${b.paid_on || "—"}</td>
+            <td>${b.month}</td>
+            <td>${RH.esc(b.listing_title || b.unit || "—")}</td>
+            <td>₱${Number(b.total).toLocaleString()}</td>
+            <td>${RH.esc(b.reference || "—")}</td>
+            <td>${badge("Verified")}</td>
+          </tr>`).join("")
+        : `<tr><td colspan="6" class="empty">No verified payments yet.</td></tr>`;
+    }
+
+    /* filters */
+    $("fStatus").addEventListener("change", renderTracker);
+    $("fSearch").addEventListener("input", renderTracker);
+
+    /* pay dialog */
+    document.addEventListener("click", e => {
+      const btn = e.target.closest("[data-pay]");
+      if (btn) {
+        $("payBillId").value = btn.dataset.pay;
+        $("payErr").textContent = "";
+        $("payForm").reset();
+        $("payDate").valueAsDate = new Date();
+        $("payDlg").showModal();
+      }
+      if (e.target.closest("[data-close]")) e.target.closest("dialog").close();
+    });
+
+    /* submit payment */
+    $("payForm").addEventListener("submit", async e => {
+      e.preventDefault();
+      $("payErr").textContent = "";
+      const fd = new FormData(e.target);
+      const ref = fd.get("reference")?.trim();
+      if (!ref) { $("payErr").textContent = "Enter a reference number."; return; }
+      const submit = e.target.querySelector("[type=submit]");
+      submit.disabled = true;
+      const r = await fetch(`/api/bills/${$("payBillId").value}/submit-payment`, {
+        method: "POST", credentials: "same-origin",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ reference: ref, paid_on: fd.get("paid_on") })
+      }).catch(() => null);
+      const d = r ? await r.json() : { error: "Could not reach server." };
+      if (!r?.ok) { $("payErr").textContent = d.error; }
+      else { $("payDlg").close(); toast("Payment submitted. Awaiting verification."); loadBills(); loadStats(); }
+      submit.disabled = false;
+    });
+
+    renderProps();
+    loadListingPhotos();
+    loadAvailableListings();
+    window.setInterval(() => {
+      if (!document.hidden) loadAvailableListings();
+    }, 30000);
+    loadStats();
+    loadBills();
+  })();
+  </script>
+</body>
+</html>

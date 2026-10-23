@@ -3,21 +3,29 @@
 RentHub is a website for finding places to rent. It is built with:
 
 - **Python and Flask** for the backend (the part that handles requests and saves data).
-- **MySQL** to save user accounts and profile photos.
+- **MySQL** to save user accounts, landlord listings, listing photos, and rental requests.
 - **HTML, CSS, and JavaScript** for the pages you see in your browser.
 
 ### What it can do now
 
 - Sign up and log in with a 6-digit code sent to your email.
+- Reset a forgotten password by verifying a 6-digit email code and choosing a new password.
+- Optionally use “Remember me” on the login page to save credentials in this browser's local storage. Do not use this on a shared or public device.
 - Stop two accounts from using the same email.
 - Two account types: tenant and landlord.
+- Landlords can post listings, edit listing details and photos, and delete their own listings.
+- The landlord dashboard shows each of their listings and counts homes currently available to rent. The tenant dashboard shows up to six active, available homes with a link to browse them all.
+- My Listings links tenants to a property, shows that property's monthly bills, and lets landlords create bills and verify or reject submitted payments from the listing card. Tenant accounts linked by email can submit their bill payments from the tenant dashboard.
+- Tenants can request to rent available listings. Landlords receive in-app notifications and can approve or decline requests.
+- A notification bell in the navbar shows request updates for logged-in users. Approved tenants can continue to the simulated checkout from the notification or My Rentals.
+- When a tenant completes the simulated checkout, their landlord's tenant count and current-month collected total update, and the tenant is linked to the rented listing. Older completed requests are added to tenant records during startup migration.
 - Edit your profile (mobile number) and upload a profile picture. Photos are saved inside the MySQL database, not as loose files in the project folder.
 - A loading screen: the RentHub logo fades in and out when you change pages.
 - A new home page with an intro (headline, short text, and quick links) next to the search card.
 - A smaller desktop layout (80% size). Phones keep the normal size.
 - A show/hide button on password boxes, and a mobile menu that slides in from the side.
 
-> **Important:** Rental listings and rental records are still sample data saved in your browser. They are **not** saved in MySQL yet.
+> **Important:** Landlord listings and tenant rental requests are saved in MySQL. The navbar notification dropdown refreshes while the page is open; My Rentals also shows request updates. Checkout is simulated and does not transfer money or process real payment details. Remember Me stores the password in plain browser local storage, so it is not suitable for shared devices.
 
 ---
 
@@ -544,14 +552,24 @@ RentHub/
 | `users` | Registered users: name, email, role, phone number, and profile photo. |
 | `login_codes` | Login codes (saved as hashes). |
 | `pending_signups` | Sign-ups waiting for the email code. |
+| `password_resets` | Password-reset codes, stored as hashes with expiry and attempt limits. |
+| `listings` | Landlord-posted homes and listing details. |
+| `listing_images` | Listing photos stored in MySQL. |
+| `rental_requests` | Tenant requests, landlord decisions, and demo payment status for a listing. |
+| `tenants` and `bills` | Landlord-managed tenants and monthly bills. Tenants can be linked to a listing so bills and payment verification appear with that property in My Listings. |
 
 ### Limits right now
 
 - Sign-up and login use a 6-digit code sent through Gmail.
+- Password resets use a 6-digit email code that expires after 10 minutes and permits up to five incorrect attempts.
 - A code lasts 10 minutes. After 5 wrong tries, the code is locked until you ask for a new one. After you ask to resend a code, you must wait 30 seconds.
 - RentHub blocks the same email twice, both in the website and in the database.
+- “Remember me” saves the email and password in local storage on the current browser. Anyone with access to that browser profile can view stored data; leave it unchecked on shared devices.
 - Profile photos must be JPG, PNG, or WEBP and no bigger than 2 MB. RentHub checks what is really inside the file, not just its name.
-- Rental listings and rental records are still sample data in `frontend/js/script.js` and in the browser's `localStorage`. They are **not saved in MySQL yet**.
+- Landlords manage their listings from My Listings, including editing listing details and replacing photos.
+- Existing tenants can be linked to a listing from My Listings; new tenants can be attached when added. Their existing and future bills then appear under that property.
+- Tenants request available landlord listings from Browse. Landlords can approve or decline from the navbar dropdown or My Listings. Tenants see status updates in the navbar and My Rentals; approved requests can continue to checkout.
+- The checkout is a school-project demo and does not transfer money or process real payment details.
 - This setup is for working on your own computer. It is not ready to be a public website.
 
 ### Before you put RentHub online

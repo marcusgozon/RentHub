@@ -1,48 +1,872 @@
-<!DOCTYPE html>
+<!doctype html>
 <html lang="en">
-<head>
-  <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1" />
-  <title>My rentals - RentHub</title>
-  <link rel="stylesheet" href="../css/style.css" />
-  <link rel="stylesheet" href="../css/pages.css" />
-  <link rel="icon" type="image/png" href="../img/renthub_logo.png" />
-</head>
-<body data-root="../">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>My rentals - RentHub</title>
+    <link rel="stylesheet" href="../css/style.css" />
+    <link rel="stylesheet" href="../css/pages.css" />
+    <style>
+      .page-head {
+        display: flex;
+        align-items: flex-end;
+        justify-content: space-between;
+        gap: 1rem;
+        flex-wrap: wrap;
+      }
+      .page-head .btn-primary {
+        margin-top: 0;
+      }
+      #msg {
+        margin: 0.75rem 0 0;
+      }
+      .card .card-img {
+        position: relative;
+      }
+      .card .pcount {
+        position: absolute;
+        right: 0.5rem;
+        bottom: 0.5rem;
+        background: rgba(38, 21, 21, 0.75);
+        color: #fff;
+        font-size: 0.7rem;
+        padding: 0.15rem 0.5rem;
+        border-radius: 99px;
+      }
+      .card .desc {
+        font-size: 0.85rem;
+        color: var(--gray);
+        margin: 0.25rem 0 0;
+        display: -webkit-box;
+        -webkit-line-clamp: 2;
+        -webkit-box-orient: vertical;
+        overflow: hidden;
+      }
+      .listing-billing {
+        margin-top: 0.75rem;
+        padding-top: 0.75rem;
+        border-top: 1px solid var(--line);
+      }
+      .listing-billing h4 {
+        margin: 0 0 0.5rem;
+        font-size: 0.9rem;
+      }
+      .listing-billing .bill-person {
+        padding: 0.625rem;
+        margin-top: 0.5rem;
+        border: 1px solid var(--line);
+        border-radius: 0.75rem;
+        background: #fffdf9;
+      }
+      .listing-billing .bill-person p {
+        margin: 0.2rem 0;
+        font-size: 0.8rem;
+      }
+      .listing-billing .bill-row {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        flex-wrap: wrap;
+        gap: 0.5rem;
+        margin-top: 0.5rem;
+        padding-top: 0.5rem;
+        border-top: 1px solid var(--line);
+        font-size: 0.78rem;
+      }
+      #listingDlg {
+        width: min(34rem, 94vw);
+        max-height: 92vh;
+        overflow-y: auto;
+      }
+      #listingDlg textarea {
+        display: block;
+        width: 100%;
+        min-height: 5rem;
+        resize: vertical;
+        background: #fff;
+        border: 1px solid var(--line);
+        border-radius: 1rem;
+        padding: 0.6rem 0.9rem;
+        color: var(--dark);
+        font: inherit;
+        font-size: 0.9rem;
+      }
+      #listingDlg textarea:focus {
+        outline: none;
+        border-color: var(--dark);
+      }
+      .lform-grid {
+        display: grid;
+        grid-template-columns: 1fr 1fr;
+        gap: 0 0.75rem;
+      }
+      .lform-grid .full {
+        grid-column: 1 / -1;
+      }
+      .thumbs {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 0.5rem;
+        margin-top: 0.5rem;
+      }
+      .thumbs .th {
+        position: relative;
+        width: 4.5rem;
+        height: 4.5rem;
+        border-radius: 0.75rem;
+        overflow: hidden;
+        border: 1px solid var(--line);
+      }
+      .thumbs .th img {
+        width: 100%;
+        height: 100%;
+        object-fit: cover;
+        display: block;
+      }
+      .thumbs .th button {
+        position: absolute;
+        top: 0.15rem;
+        right: 0.15rem;
+        width: 1.3rem;
+        height: 1.3rem;
+        border: 0;
+        border-radius: 50%;
+        background: rgba(38, 21, 21, 0.8);
+        color: #fff;
+        cursor: pointer;
+        line-height: 1;
+        font-size: 0.85rem;
+      }
+      .thumbs .th.first::after {
+        content: "Cover";
+        position: absolute;
+        left: 0;
+        right: 0;
+        bottom: 0;
+        text-align: center;
+        font-size: 0.6rem;
+        background: rgba(38, 21, 21, 0.75);
+        color: #fff;
+        padding: 0.1rem 0;
+      }
+      @media (max-width: 520px) {
+        .lform-grid {
+          grid-template-columns: 1fr;
+        }
+      }
+    </style>
+    <link rel="icon" type="image/png" href="../img/renthub_logo.png" />
+  </head>
+  <body data-root="../">
     <div class="page-loader" id="pageLoader" role="status" aria-label="Loading">
-        <img src="../img/renthub_logo.png" alt="RentHub" class="loader-logo" />
+      <img src="../img/renthub_logo.png" alt="RentHub" class="loader-logo" />
     </div>
 
-  <header class="site-header">
-    <a href="../index.html" class="logo"><img src="../img/renthub_logo.png" alt="RentHub Logo" class="logoimg" /></a>
-    <button class="menu-btn" id="menuBtn" aria-label="Toggle menu"><span></span><span></span><span></span></button>
-    <nav id="nav">
-      <ul class="nav-links">
-        <li><a href="../index.html">Home</a></li>
-        <li><a href="browse.html">Browse</a></li>
-        <li><a href="myrentals.html">My Rentals</a></li>
-        <li><a href="extendstay.html">Extend Stay</a></li>
-      </ul>
-    </nav>
-    <div class="auth" id="auth">
-      <a href="login.html"><button class="btn-primary">Log In</button></a>
-      <a href="signup.html" class="signup"><button class="btn-primary">Sign Up</button></a>
-    </div>
-  </header>
+    <header class="site-header">
+      <a href="../index.html" class="logo"
+        ><img src="../img/renthub_logo.png" alt="RentHub Logo" class="logoimg"
+      /></a>
+      <button class="menu-btn" id="menuBtn" aria-label="Toggle menu">
+        <span></span><span></span><span></span>
+      </button>
+      <nav id="nav">
+        <ul class="nav-links">
+          <li><a href="../index.html">Home</a></li>
+          <li><a href="browse.html">Browse</a></li>
+          <li><a href="myrentals.html">My Rentals</a></li>
+          <li><a href="extendstay.html">Extend Stay</a></li>
+        </ul>
+      </nav>
+      <div class="auth" id="auth">
+        <a href="login.html"><button class="btn-primary">Log In</button></a>
+        <a href="signup.html" class="signup"
+          ><button class="btn-primary">Sign Up</button></a
+        >
+      </div>
+    </header>
 
-  <main class="page">
-    <h1>My rentals</h1>
-    <p class="sub">Your current and past stays.</p>
-    <div class="cards" id="cards"></div>
-  </main>
-  <footer class="site-footer"><p>&copy; 2024 RentHub. All rights reserved.</p></footer>
-  <script src="../js/script.js"></script>
-  <script>
+    <main class="page">
+      <div class="page-head">
+        <div>
+          <h1 id="pageTitle">My rentals</h1>
+          <p class="sub" id="pageSub">Your current and past stays.</p>
+        </div>
+        <button class="btn-primary" id="addBtn" type="button" hidden>
+          + Add listing
+        </button>
+      </div>
+      <p class="ok" id="msg" hidden></p>
+      <section id="rentalRequestsPanel" class="wide-panel" hidden>
+        <h2 id="rentalRequestsTitle"></h2>
+        <p class="sub" id="rentalRequestsSub"></p>
+        <div class="cards" id="rentalRequests"></div>
+      </section>
+      <div class="cards" id="cards"></div>
+    </main>
 
-    if (RH.requireLogin()) {
-      const list = RH.myRentals().sort((a, b) => b.moveIn.localeCompare(a.moveIn));
-      const box = document.getElementById("cards");
-      box.innerHTML = list.length ? list.map(r => { const s = RH.status(r); return `
+    <dialog id="listingDlg">
+      <h2>Add a listing</h2>
+      <form id="listingForm" novalidate>
+        <label for="lPhotos"
+          >Photos of your place (up to 6, JPG/PNG/WEBP, 2 MB each)</label
+        >
+        <input
+          type="file"
+          id="lPhotos"
+          accept="image/png,image/jpeg,image/webp"
+          multiple
+        />
+        <div class="thumbs" id="lThumbs"></div>
+        <div class="lform-grid">
+          <div class="full">
+            <label for="lTitle">Title</label
+            ><input
+              id="lTitle"
+              maxlength="120"
+              autocomplete="off"
+              placeholder="e.g. Cozy 1BR condo near MRT"
+            />
+          </div>
+          <div class="full">
+            <label for="lLoc">Location</label
+            ><input
+              id="lLoc"
+              maxlength="160"
+              autocomplete="off"
+              placeholder="e.g. Cubao, Quezon City"
+            />
+          </div>
+          <div>
+            <label for="lType">Type</label>
+            <select id="lType">
+              <option>Studio</option>
+              <option>Condo</option>
+              <option>Apartment</option>
+              <option>House</option>
+              <option>Bedspace</option>
+            </select>
+          </div>
+          <div>
+            <label for="lPrice">Monthly price (₱)</label
+            ><input
+              id="lPrice"
+              type="number"
+              min="1"
+              step="1"
+              placeholder="e.g. 15000"
+            />
+          </div>
+          <div>
+            <label for="lBeds">Bedrooms</label
+            ><input id="lBeds" type="number" min="0" value="1" />
+          </div>
+          <div>
+            <label for="lBaths">Bathrooms</label
+            ><input id="lBaths" type="number" min="1" value="1" />
+          </div>
+          <div class="full">
+            <label for="lDesc">Description</label>
+            <textarea
+              id="lDesc"
+              maxlength="5000"
+              placeholder="Furnishings, house rules, nearby places…"
+            ></textarea>
+          </div>
+        </div>
+        <p class="error" id="lErr"></p>
+        <div class="actions">
+          <button class="btn-secondary" id="lCancel" type="button">
+            Cancel
+          </button>
+          <button class="btn-primary" id="lSave" type="submit">
+            Post listing
+          </button>
+        </div>
+      </form>
+    </dialog>
+    <dialog id="listingTenantDlg" class="form-dlg">
+      <h2>Add tenant to listing</h2>
+      <form id="listingTenantForm" novalidate>
+        <input type="hidden" name="listing_id" />
+        <label>Tenant name
+          <input name="name" maxlength="100" autocomplete="off" required />
+        </label>
+        <label>Unit / room
+          <input name="unit" maxlength="160" autocomplete="off" required />
+        </label>
+        <label>Monthly rent (₱)
+          <input name="rent" type="number" min="1" step="0.01" required />
+        </label>
+        <label>Tenant's RentHub email (optional)
+          <input name="email" type="email" autocomplete="off" />
+        </label>
+        <p class="error" id="listingTenantErr"></p>
+        <div class="actions">
+          <button class="btn-secondary" type="button" data-close-dialog>Cancel</button>
+          <button class="btn-primary" type="submit">Add tenant</button>
+        </div>
+      </form>
+    </dialog>
+    <dialog id="listingBillDlg" class="form-dlg">
+      <h2>Create bill</h2>
+      <form id="listingBillForm" novalidate>
+        <input type="hidden" name="tenant_id" />
+        <p class="meta" id="listingBillFor"></p>
+        <label>Billing month
+          <input name="month" type="month" required />
+        </label>
+        <label>Due date
+          <input name="due_date" type="date" required />
+        </label>
+        <label>Extra charges (₱)
+          <input name="extra" type="number" min="0" step="0.01" value="0" />
+        </label>
+        <p class="error" id="listingBillErr"></p>
+        <div class="actions">
+          <button class="btn-secondary" type="button" data-close-dialog>Cancel</button>
+          <button class="btn-primary" type="submit">Create bill</button>
+        </div>
+      </form>
+    </dialog>
+    <footer class="site-footer">
+      <p>&copy; 2026 RentHub. All rights reserved.</p>
+    </footer>
+    <script src="../js/script.js"></script>
+    <script>
+      const $ = (id) => document.getElementById(id);
+      const me = RH.user();
+
+      async function loadRentalRequests() {
+        const panel = $("rentalRequestsPanel");
+        const cards = $("rentalRequests");
+        const landlord = me && me.role === "landlord";
+        panel.hidden = false;
+        $("rentalRequestsTitle").textContent = landlord
+          ? "Rental request notifications"
+          : "Rental request updates";
+        $("rentalRequestsSub").textContent = landlord
+          ? "New tenant requests appear here. Approving lets the tenant proceed to the demo payment gateway."
+          : "You'll see landlord decisions here. Approved requests can continue to the demo payment gateway.";
+        const response = await fetch("/api/rental-requests", {
+          credentials: "same-origin",
+          cache: "no-store",
+        }).catch(() => null);
+        if (!response || !response.ok) {
+          cards.innerHTML =
+            '<div class="empty" style="grid-column:1/-1"><p>Could not load rental request notifications. Please try again.</p></div>';
+          return;
+        }
+        const data = await response.json();
+        const requests = data.requests || [];
+        if (!requests.length) {
+          cards.innerHTML = `<div class="empty" style="grid-column:1/-1"><p>${landlord ? "No tenants have requested your listings yet." : "No rental requests yet."}</p></div>`;
+          return;
+        }
+        cards.innerHTML = requests.map((request) => {
+          const status = request.status.charAt(0).toUpperCase() + request.status.slice(1);
+          const dates = `${RH.nice(request.move_in)} · ${request.months} month${request.months === 1 ? "" : "s"}`;
+          const who = landlord
+            ? `Requested by ${RH.esc(request.tenant_name)} (${RH.esc(request.tenant_email)})`
+            : `Landlord decision: ${status}`;
+          const actions = landlord && request.status === "pending"
+            ? `<button class="btn-primary" data-decision="approve" data-id="${request.id}">Approve</button><button class="btn-secondary" data-decision="reject" data-id="${request.id}">Decline</button>`
+            : !landlord && request.status === "approved"
+              ? `<a class="btn-primary" href="browse.html?payRequest=${request.id}">Continue to payment</a>`
+              : "";
+          const payment = request.status === "paid"
+            ? `<p class="meta">Demo payment complete · ${RH.esc(request.payment_method || "")} · Ref: ${RH.esc(request.payment_reference || "")}</p>`
+            : "";
+          return `<article class="card">
+            <div class="row-between"><h3>${RH.esc(request.title)}</h3><span class="tag">${status}</span></div>
+            <p class="loc">${RH.esc(request.location)}</p>
+            <p class="meta">${who}</p>
+            <p class="meta">${dates} · ${RH.peso(request.monthly_price)} / month</p>
+            ${payment}
+            <div class="actions">${actions}</div>
+          </article>`;
+        }).join("");
+      }
+
+      // ---------------- Landlord: their listed places + add listing ----------------
+      function landlordView() {
+        document.title = "My listings - RentHub";
+        $("pageTitle").textContent = "My listings";
+        $("pageSub").textContent =
+          "Manage listings, linked tenants, monthly bills, and payment verification.";
+        $("addBtn").hidden = false;
+
+        const NO_PHOTO =
+          '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><path d="M3 11l9-7 9 7v9a1 1 0 0 1-1 1h-5v-6H9v6H4a1 1 0 0 1-1-1z"/></svg>';
+        const MAX_PHOTOS = 6,
+          MAX_BYTES = 2 * 1024 * 1024;
+        let picked = [],
+          saving = false,
+          editingId = null;
+        let listingTenants = [],
+          listingBills = [],
+          billingLoadError = "";
+
+        function say(text) {
+          const m = $("msg");
+          m.textContent = text;
+          m.hidden = !text;
+        }
+
+        $("rentalRequests").addEventListener("click", async (e) => {
+          const button = e.target.closest("[data-decision]");
+          if (!button) return;
+          button.disabled = true;
+          const response = await fetch(
+            "/api/rental-requests/" + button.dataset.id + "/decision",
+            {
+              method: "POST",
+              credentials: "same-origin",
+              headers: { "Content-Type": "application/json" },
+              body: JSON.stringify({ action: button.dataset.decision }),
+            },
+          ).catch(() => null);
+          const data = response ? await response.json().catch(() => ({})) : {};
+          if (!response || !response.ok) {
+            say(data.error || "Could not update the rental request.");
+            button.disabled = false;
+            return;
+          }
+          say(data.message);
+          loadRentalRequests();
+        });
+
+        document.addEventListener("click", (e) => {
+          const close = e.target.closest("[data-close-dialog]");
+          if (close) close.closest("dialog").close();
+        });
+
+        $("listingTenantForm").addEventListener("submit", async (e) => {
+          e.preventDefault();
+          const form = e.target;
+          const error = $("listingTenantErr");
+          error.textContent = "";
+          const submit = form.querySelector('[type="submit"]');
+          submit.disabled = true;
+          const response = await fetch("/api/tenants", {
+            method: "POST",
+            credentials: "same-origin",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({
+              listing_id: form.elements.listing_id.value,
+              name: form.elements.name.value.trim(),
+              unit: form.elements.unit.value.trim(),
+              rent: form.elements.rent.value,
+              email: form.elements.email.value.trim(),
+            }),
+          }).catch(() => null);
+          const data = response ? await response.json().catch(() => ({})) : {};
+          if (!response || !response.ok) {
+            error.textContent = data.error || "Could not add the tenant.";
+            submit.disabled = false;
+            return;
+          }
+          $("listingTenantDlg").close();
+          form.reset();
+          say(data.message || "Tenant added to this listing.");
+          await load();
+          submit.disabled = false;
+        });
+
+        $("listingBillForm").addEventListener("submit", async (e) => {
+          e.preventDefault();
+          const form = e.target;
+          const error = $("listingBillErr");
+          error.textContent = "";
+          const submit = form.querySelector('[type="submit"]');
+          submit.disabled = true;
+          const response = await fetch("/api/bills", {
+            method: "POST",
+            credentials: "same-origin",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({
+              tenant_id: form.elements.tenant_id.value,
+              month: form.elements.month.value,
+              due_date: form.elements.due_date.value,
+              extra: form.elements.extra.value || 0,
+            }),
+          }).catch(() => null);
+          const data = response ? await response.json().catch(() => ({})) : {};
+          if (!response || !response.ok) {
+            error.textContent = data.error || "Could not create the bill.";
+            submit.disabled = false;
+            return;
+          }
+          $("listingBillDlg").close();
+          form.reset();
+          say(data.message || "Bill created.");
+          await load();
+          submit.disabled = false;
+        });
+
+        function fillForm(listing) {
+          const form = $("listingForm");
+          form.dataset.mode = listing ? "edit" : "create";
+          editingId = listing ? Number(listing.id) : null;
+          $("listingDlg").querySelector("h2").textContent = listing
+            ? "Edit listing"
+            : "Add a listing";
+          $("lSave").textContent = listing ? "Save changes" : "Post listing";
+          if (!listing) {
+            form.reset();
+            return;
+          }
+          $("lTitle").value = listing.title || "";
+          $("lLoc").value = listing.location || "";
+          $("lType").value = listing.type || "Condo";
+          $("lPrice").value = listing.price || "";
+          $("lBeds").value = listing.beds ?? 1;
+          $("lBaths").value = listing.baths ?? 1;
+          $("lDesc").value = listing.description || "";
+          picked = (listing.images || []).map((url) => ({ url, file: null }));
+          renderThumbs();
+        }
+
+        function listingBilling(l) {
+          if (billingLoadError) {
+            return `<section class="listing-billing"><h4>Billing</h4><p class="error">${RH.esc(billingLoadError)}</p></section>`;
+          }
+          const tenants = listingTenants.filter((tenant) => String(tenant.listing_id) === String(l.id));
+          const unlinkedTenants = listingTenants.filter((tenant) => !tenant.listing_id);
+          const tenantCards = tenants.map((tenant) => {
+            const bills = listingBills.filter((bill) => String(bill.tenant_id) === String(tenant.id));
+            const pendingBills = bills.filter((bill) => bill.status === "Pending");
+            const billRow = (bill, actions) => `
+              <div class="bill-row">
+                <span><strong>${RH.esc(bill.month)}</strong> · ₱${Number(bill.total).toLocaleString()} · ${RH.esc(bill.status)}<br>
+                  Due ${RH.esc(bill.due_date || "—")} · Paid ${RH.esc(bill.paid_on || "—")}${bill.reference ? ` · Ref ${RH.esc(bill.reference)}` : ""}</span>
+                ${actions ? `<span><button class="btn-primary" data-bill-verify="${bill.id}" data-action="approve">Verify</button> <button class="btn-secondary" data-bill-verify="${bill.id}" data-action="reject">Reject</button></span>` : ""}
+              </div>`;
+            const pendingRows = pendingBills.length
+              ? pendingBills.map((bill) => billRow(bill, true)).join("")
+              : '<p class="meta">No payments awaiting verification.</p>';
+            const billRows = bills.length
+              ? bills.map((bill) => billRow(bill, false)).join("")
+              : '<p class="meta">No bills yet.</p>';
+            return `<div class="bill-person">
+              <p><strong>${RH.esc(tenant.name)}</strong> · ${RH.esc(tenant.unit)}</p>
+              <p>${tenant.email ? RH.esc(tenant.email) : "No RentHub email"} · ₱${Number(tenant.rent).toLocaleString()} / month</p>
+              <button class="btn-secondary" data-create-bill="${tenant.id}" data-tenant-name="${RH.esc(tenant.name)}">+ Create bill</button>
+              <p class="meta"><strong>Payments to verify</strong> · ${pendingBills.length}</p>
+              ${pendingRows}
+              <p class="meta"><strong>All bills</strong></p>
+              ${billRows}
+            </div>`;
+          }).join("");
+          const pendingCount = tenants.reduce((count, tenant) =>
+            count + listingBills.filter((bill) =>
+              String(bill.tenant_id) === String(tenant.id) && bill.status === "Pending"
+            ).length, 0);
+          const linkExisting = unlinkedTenants.length
+            ? `<div class="bill-person">
+                <p><strong>Link an existing tenant and their bills</strong></p>
+                <div class="actions">
+                  <select data-link-tenant-select="${l.id}" aria-label="Choose an existing tenant">
+                    ${unlinkedTenants.map((tenant) => `<option value="${tenant.id}">${RH.esc(tenant.name)} · ${RH.esc(tenant.unit)}</option>`).join("")}
+                  </select>
+                  <button class="btn-secondary" data-link-tenant-to="${l.id}">Link tenant</button>
+                </div>
+              </div>`
+            : "";
+          return `<section class="listing-billing">
+            <div class="row-between"><h4>Billing · ${pendingCount} awaiting verification</h4>
+              <button class="btn-secondary" data-add-listing-tenant="${l.id}" data-listing-title="${RH.esc(l.title)}" data-listing-price="${l.price}">+ Add tenant</button>
+            </div>
+            ${tenantCards || '<p class="meta">No tenants linked to this listing yet. Add a tenant here to create and verify bills for this home.</p>'}
+            ${linkExisting}
+          </section>`;
+        }
+
+        async function load() {
+          const box = $("cards");
+          const r = await fetch("/api/my-listings", {
+            credentials: "same-origin",
+            cache: "no-store",
+          }).catch(() => null);
+          if (!r || !r.ok) {
+            box.innerHTML =
+              '<div class="empty" style="grid-column:1/-1"><p>Could not load your listings. Make sure the RentHub server is running.</p></div>';
+            return;
+          }
+          const { listings } = await r.json();
+          const [tenantResponse, billResponse] = await Promise.all([
+            fetch("/api/tenants", { credentials: "same-origin", cache: "no-store" }).catch(() => null),
+            fetch("/api/bills", { credentials: "same-origin", cache: "no-store" }).catch(() => null),
+          ]);
+          billingLoadError = "";
+          if (tenantResponse?.ok) {
+            listingTenants = (await tenantResponse.json()).tenants || [];
+          } else {
+            billingLoadError = "Could not load tenants and bills. Please refresh and try again.";
+          }
+          if (billResponse?.ok) {
+            listingBills = (await billResponse.json()).bills || [];
+          } else {
+            billingLoadError = "Could not load tenants and bills. Please refresh and try again.";
+          }
+          box.innerHTML = listings.length
+            ? listings
+                .map(
+                  (l) => `
+          <article class="card">
+            <div class="card-img">${l.image ? `<img src="${RH.esc(l.image)}" alt="" loading="lazy" />` : NO_PHOTO}
+              ${l.images.length > 1 ? `<span class="pcount">${l.images.length} photos</span>` : ""}</div>
+            <span class="tag">${RH.esc(l.type)}</span><h3>${RH.esc(l.title)}</h3>
+            <p class="loc">${RH.esc(l.location)}</p>
+            <p class="meta">${l.beds ? l.beds + " bed" : "Studio"} · ${l.baths} bath</p>
+            ${l.description ? `<p class="desc">${RH.esc(l.description)}</p>` : ""}
+            <p class="price">${RH.peso(l.price)} / month</p>
+            ${listingBilling(l)}
+            <div class="actions"><button class="btn-secondary" data-edit="${l.id}">Edit</button><button class="btn-secondary" data-del="${l.id}">Delete</button></div>
+          </article>`,
+                )
+                .join("")
+            : '<div class="empty" style="grid-column:1/-1"><p>You haven\'t listed any homes yet.</p><button class="btn-primary" type="button" data-add>Add your first listing</button></div>';
+        }
+
+        function renderThumbs() {
+          $("lThumbs").innerHTML = picked
+            .map(
+              (p, i) =>
+                `<div class="th${i === 0 ? " first" : ""}"><img src="${p.url}" alt="" /><button type="button" data-rm="${i}" aria-label="Remove photo">×</button></div>`,
+            )
+            .join("");
+        }
+        function resetForm() {
+          picked.forEach((p) => { if (p.file) URL.revokeObjectURL(p.url); });
+          picked = [];
+          editingId = null;
+          renderThumbs();
+          $("listingForm").reset();
+          $("listingForm").dataset.mode = "create";
+          $("listingDlg").querySelector("h2").textContent = "Add a listing";
+          $("lSave").textContent = "Post listing";
+          $("lErr").textContent = "";
+        }
+        function openForm(listing = null) {
+          say("");
+          resetForm();
+          if (listing) fillForm(listing);
+          $("listingDlg").showModal();
+        }
+
+        $("addBtn").addEventListener("click", openForm);
+        $("lCancel").addEventListener("click", () => {
+          $("listingDlg").close();
+          resetForm();
+        });
+
+        $("lPhotos").addEventListener("change", (e) => {
+          $("lErr").textContent = "";
+          for (const f of e.target.files) {
+            if (picked.length >= MAX_PHOTOS) {
+              $("lErr").textContent =
+                "You can upload up to " + MAX_PHOTOS + " photos.";
+              break;
+            }
+            if (!/^image\/(png|jpeg|webp)$/.test(f.type)) {
+              $("lErr").textContent =
+                "Only JPG, PNG or WEBP images are allowed.";
+              continue;
+            }
+            if (f.size > MAX_BYTES) {
+              $("lErr").textContent = "“" + f.name + "” is over 2 MB.";
+              continue;
+            }
+            picked.push({ file: f, url: URL.createObjectURL(f) });
+          }
+          e.target.value = "";
+          renderThumbs();
+        });
+        $("lThumbs").addEventListener("click", (e) => {
+          const b = e.target.closest("[data-rm]");
+          if (!b) return;
+          const [gone] = picked.splice(Number(b.dataset.rm), 1);
+          if (gone && gone.file) URL.revokeObjectURL(gone.url);
+          renderThumbs();
+        });
+
+        $("listingForm").addEventListener("submit", async (e) => {
+          e.preventDefault();
+          if (saving) return;
+          const err = $("lErr");
+          err.textContent = "";
+          const title = $("lTitle").value.trim(),
+            loc = $("lLoc").value.trim(),
+            price = Number($("lPrice").value);
+          if (!title) {
+            err.textContent = "Add a title.";
+            return;
+          }
+          if (!loc) {
+            err.textContent = "Add a location.";
+            return;
+          }
+          if (!(price > 0)) {
+            err.textContent = "Enter a monthly price above 0.";
+            return;
+          }
+          const fd = new FormData();
+          fd.append("title", title);
+          fd.append("location", loc);
+          fd.append("type", $("lType").value);
+          fd.append("price", price);
+          fd.append("beds", $("lBeds").value || 0);
+          fd.append("baths", $("lBaths").value || 1);
+          fd.append("description", $("lDesc").value.trim());
+          picked.filter((p) => p.file).forEach((p) => fd.append("photo", p.file));
+          saving = true;
+          $("lSave").disabled = true;
+          $("lSave").textContent = editingId ? "Saving…" : "Posting…";
+          const url = editingId ? "/api/listings/" + editingId : "/api/listings";
+          const method = editingId ? "PUT" : "POST";
+          const r = await fetch(url, {
+            method,
+            body: fd,
+            credentials: "same-origin",
+          }).catch(() => null);
+          const d = r ? await r.json().catch(() => ({})) : {};
+          saving = false;
+          $("lSave").disabled = false;
+          $("lSave").textContent = editingId ? "Save changes" : "Post listing";
+          if (!r) {
+            err.textContent =
+              "Can't reach the backend. Make sure the RentHub Python server is running.";
+            return;
+          }
+          if (!r.ok) {
+            err.textContent = d.error || (editingId ? "Could not update your home." : "Could not post your home.");
+            return;
+          }
+          $("listingDlg").close();
+          resetForm();
+          say(editingId ? "Your property listing was updated." : "Your property listing has been created successfully.");
+          load();
+        });
+
+        $("cards").addEventListener("click", async (e) => {
+          const linkTenant = e.target.closest("[data-link-tenant-to]");
+          if (linkTenant) {
+            const select = $("cards").querySelector(`[data-link-tenant-select="${linkTenant.dataset.linkTenantTo}"]`);
+            if (!select?.value) return;
+            linkTenant.disabled = true;
+            const response = await fetch("/api/tenants/" + select.value + "/listing", {
+              method: "POST",
+              credentials: "same-origin",
+              headers: { "Content-Type": "application/json" },
+              body: JSON.stringify({ listing_id: linkTenant.dataset.linkTenantTo }),
+            }).catch(() => null);
+            const data = response ? await response.json().catch(() => ({})) : {};
+            if (!response || !response.ok) {
+              say(data.error || "Could not link the tenant to this listing.");
+              linkTenant.disabled = false;
+              return;
+            }
+            say(data.message || "Tenant linked to this listing.");
+            await load();
+            return;
+          }
+          const addTenant = e.target.closest("[data-add-listing-tenant]");
+          if (addTenant) {
+            const form = $("listingTenantForm");
+            form.reset();
+            form.elements.listing_id.value = addTenant.dataset.addListingTenant;
+            form.elements.unit.value = addTenant.dataset.listingTitle;
+            form.elements.rent.value = addTenant.dataset.listingPrice;
+            $("listingTenantErr").textContent = "";
+            $("listingTenantDlg").showModal();
+            return;
+          }
+          const createBill = e.target.closest("[data-create-bill]");
+          if (createBill) {
+            const form = $("listingBillForm");
+            form.reset();
+            form.elements.tenant_id.value = createBill.dataset.createBill;
+            $("listingBillFor").textContent = "Tenant: " + createBill.dataset.tenantName;
+            form.elements.month.value = new Date().toISOString().slice(0, 7);
+            $("listingBillErr").textContent = "";
+            $("listingBillDlg").showModal();
+            return;
+          }
+          const verifyBill = e.target.closest("[data-bill-verify]");
+          if (verifyBill) {
+            verifyBill.disabled = true;
+            const response = await fetch("/api/bills/" + verifyBill.dataset.billVerify + "/verify", {
+              method: "POST",
+              credentials: "same-origin",
+              headers: { "Content-Type": "application/json" },
+              body: JSON.stringify({ action: verifyBill.dataset.action }),
+            }).catch(() => null);
+            const data = response ? await response.json().catch(() => ({})) : {};
+            if (!response || !response.ok) {
+              say(data.error || "Could not update payment verification.");
+              verifyBill.disabled = false;
+              return;
+            }
+            say(data.message || "Payment updated.");
+            await load();
+            return;
+          }
+          const editBtn = e.target.closest("[data-edit]");
+          if (editBtn) {
+            const r = await fetch("/api/my-listings", {
+              credentials: "same-origin",
+              cache: "no-store",
+            }).catch(() => null);
+            const listing = r && r.ok ? (await r.json()).listings.find((l) => String(l.id) === String(editBtn.dataset.edit)) : null;
+            if (listing) openForm(listing);
+            return;
+          }
+          if (e.target.closest("[data-add]")) return openForm();
+          const b = e.target.closest("[data-del]");
+          if (
+            !b ||
+            !confirm("Delete this listing? Its photos will be removed too.")
+          )
+            return;
+          b.disabled = true;
+          const r = await fetch("/api/listings/" + b.dataset.del, {
+            method: "DELETE",
+            credentials: "same-origin",
+          }).catch(() => null);
+          const d = r ? await r.json().catch(() => ({})) : {};
+          say(
+            r && r.ok
+              ? "Listing deleted."
+              : d.error || "Could not delete the listing.",
+          );
+          load();
+        });
+
+        load();
+        loadRentalRequests();
+        window.setInterval(() => {
+          if (!document.hidden) {
+            load();
+            loadRentalRequests();
+          }
+        }, 30000);
+      }
+
+      // ---------------- Tenant: rentals (unchanged) ----------------
+      function tenantView() {
+        loadRentalRequests();
+        window.setInterval(() => {
+          if (!document.hidden) loadRentalRequests();
+        }, 30000);
+        const list = RH.myRentals().sort((a, b) =>
+          b.moveIn.localeCompare(a.moveIn),
+        );
+        const box = document.getElementById("cards");
+        box.innerHTML = list.length
+          ? list
+              .map((r) => {
+                const s = RH.status(r);
+                return `
         <article class="card">
           <div class="row-between"><h3>${RH.esc(r.title)}</h3><span class="badge ${s}">${s}</span></div>
           <p class="loc">${RH.esc(r.location)}</p>
@@ -51,13 +875,24 @@
           <div class="actions">
             ${s !== "Ended" ? `<a class="btn-secondary" href="extendstay.html?id=${r.id}">Extend stay</a>` : ""}
             <button class="btn-secondary" data-cancel="${r.id}">${s === "Ended" ? "Remove" : "Cancel"}</button>
-          </div></article>`; }).join("")
-        : '<div class="empty" style="grid-column:1/-1"><p>You haven\'t rented anything yet.</p><a class="btn-primary" href="browse.html">Browse homes</a></div>';
-      box.addEventListener("click", e => {
-        const b = e.target.closest("[data-cancel]"); if (!b) return;
-        if (confirm("Remove this rental from your list?")) { RH.removeRental(Number(b.dataset.cancel)); location.reload(); }
-      });
-    }
-  </script>
-</body>
+          </div></article>`;
+              })
+              .join("")
+          : '<div class="empty" style="grid-column:1/-1"><p>You haven\'t rented anything yet.</p><a class="btn-primary" href="browse.html">Browse homes</a></div>';
+        box.addEventListener("click", (e) => {
+          const b = e.target.closest("[data-cancel]");
+          if (!b) return;
+          if (confirm("Remove this rental from your list?")) {
+            RH.removeRental(Number(b.dataset.cancel));
+            location.reload();
+          }
+        });
+      }
+
+      if (RH.requireLogin()) {
+        if (me && me.role === "landlord") landlordView();
+        else tenantView();
+      }
+    </script>
+  </body>
 </html>

@@ -25,6 +25,26 @@ input {
   background: #fff;
 }
 
+.form-wrap .search-card #f label.remember-row {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  margin: 0.75rem 0 0;
+  font-size: 0.8rem;
+  font-weight: 400;
+  letter-spacing: 0;
+  text-transform: none;
+  cursor: pointer;
+}
+.form-wrap .search-card #f label.remember-row input[type="checkbox"] {
+  flex: 0 0 auto;
+  width: 1rem;
+  height: 1rem;
+  margin: 0;
+  padding: 0;
+  accent-color: var(--dark);
+}
+
 body {
   margin: 0;
   padding: 0;
@@ -579,4 +599,1348 @@ dialog .actions .btn-primary {
   .avatar-actions {
     align-items: center;
   }
+}
+
+/*post listing*/
+
+
+.listing-panel {
+  margin-left: auto;
+  margin-right: auto;
+}
+.listing-panel textarea {
+  display: block;
+  width: 100%;
+  min-height: 5.5rem;
+  resize: vertical;
+  background: #fff;
+  border: 1px solid var(--line);
+  border-radius: 1.375rem;
+  padding: 0.75rem 1.125rem;
+  color: var(--dark);
+  font: inherit;
+  font-size: 0.95rem;
+  transition: border-color 0.2s ease, box-shadow 0.25s ease;
+}
+.listing-panel textarea:hover {
+  border-color: rgba(38, 21, 21, 0.35);
+}
+.listing-panel textarea:focus {
+  outline: none;
+  border-color: var(--dark);
+  box-shadow: 0 0 0 0.25rem rgba(38, 21, 21, 0.14);
+}
+.photo-drop {
+  display: block;
+  text-align: center;
+  padding: 1.25rem 1rem;
+  background: #fff;
+  border: 1px dashed rgba(38, 21, 21, 0.45);
+  border-radius: 1.375rem;
+  color: var(--gray);
+  font-size: 0.9rem;
+  cursor: pointer;
+  overflow: hidden;
+  transition: border-color 0.2s ease;
+}
+.photo-drop:hover {
+  border-color: var(--dark);
+}
+.photo-drop img {
+  display: block;
+  width: 100%;
+  max-height: 11rem;
+  object-fit: cover;
+  border-radius: 0.875rem;
+}
+.listing-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 0 0.75rem;
+}
+.listing-grid.two {
+  grid-column: 1 / -1;
+  grid-template-columns: 1fr 1fr;
+}
+.my-listings {
+  margin-top: 2rem;
+}
+.my-listings h2 {
+  color: lightgray;
+  font-size: 1.25rem;
+  text-shadow: 0 2px 0.875rem rgba(0, 0, 0, 0.35);
+}
+.card-img {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  height: 8rem;
+  margin-bottom: 0.625rem;
+  background: var(--light);
+  border-radius: 0.875rem;
+  color: var(--gray);
+  overflow: hidden;
+}
+.card-img img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+.card-img svg {
+  width: 2.25rem;
+  height: 2.25rem;
+}
+@media (max-width: 760px) {
+  .listing-grid {
+    grid-template-columns: 1fr;
+  }
+}
+
+
+
+/*billing*/
+
+main.page {
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
+  max-width: 62rem;
+}
+main.page > h1 { margin-bottom: 0; }
+main.page > .sub { margin: -0.5rem 0 0; }
+main.page > section { display: flex; flex-direction: column; gap: 1rem; }
+main.page > section[hidden] { display: none; }
+
+#rentalRequestsPanel {
+  gap: 0.75rem;
+  padding: 1.25rem;
+  border: 1px solid rgba(243, 228, 201, 0.75);
+  border-radius: 1.125rem;
+  background: rgba(243, 228, 201, 0.97);
+  box-shadow: var(--shadow-md);
+}
+#rentalRequestsPanel > h2 {
+  color: var(--dark);
+  font-size: 1.25rem;
+  line-height: 1.35;
+}
+#rentalRequestsPanel > .sub {
+  margin-top: -0.4rem;
+  color: #514343;
+  font-size: 0.88rem;
+  line-height: 1.55;
+}
+#rentalRequestsPanel #rentalRequests {
+  grid-template-columns: repeat(auto-fill, minmax(min(100%, 19rem), 1fr));
+  gap: 0.75rem;
+}
+#rentalRequestsPanel #rentalRequests > .card {
+  min-width: 0;
+  gap: 0.5rem;
+  padding: 1rem;
+  border: 1px solid rgba(38, 21, 21, 0.1);
+  border-radius: 0.875rem;
+  background: #fff;
+  box-shadow: var(--shadow-sm);
+  overflow-wrap: anywhere;
+}
+#rentalRequestsPanel #rentalRequests .row-between {
+  align-items: flex-start;
+  gap: 0.75rem;
+}
+#rentalRequestsPanel #rentalRequests .row-between h3 {
+  min-width: 0;
+  font-size: 1rem;
+  line-height: 1.4;
+}
+#rentalRequestsPanel #rentalRequests .tag {
+  flex: none;
+}
+#rentalRequestsPanel #rentalRequests .loc {
+  font-size: 0.88rem;
+  line-height: 1.45;
+}
+#rentalRequestsPanel #rentalRequests .meta {
+  color: #514343;
+  font-size: 0.82rem;
+  line-height: 1.55;
+}
+#rentalRequestsPanel #rentalRequests .actions {
+  flex-wrap: wrap;
+  gap: 0.5rem;
+  padding-top: 0.5rem;
+}
+#rentalRequestsPanel #rentalRequests .empty {
+  min-height: 5rem;
+  padding: 1rem;
+  color: var(--dark);
+  background: rgba(255, 255, 255, 0.86);
+}
+#rentalRequestsPanel #rentalRequests .empty p {
+  color: #514343;
+  font-size: 0.9rem;
+  line-height: 1.55;
+}
+
+ 
+/* ---------- Section headings ---------- */
+.pay-h2 {
+  margin: 0.5rem 0 -0.25rem;
+  color: lightgray;
+  font-size: 1.1rem;
+  font-weight: 700;
+  letter-spacing: -0.01em;
+  text-shadow: 0 2px 0.875rem rgba(0, 0, 0, 0.35);
+}
+ 
+/* ---------- Role switch (segmented pill) ---------- */
+.seg {
+  display: inline-flex;
+  align-self: flex-start;
+  gap: 0.25rem;
+  padding: 0.25rem;
+  background: rgba(243, 228, 201, 0.92);
+  border-radius: 1.875rem;
+  box-shadow: var(--shadow-sm);
+}
+.seg button {
+  padding: 0.45rem 1.125rem;
+  background: transparent;
+  color: var(--dark);
+  border: 0;
+  border-radius: 1.875rem;
+  font: inherit;
+  font-size: 0.85rem;
+  font-weight: 700;
+  cursor: pointer;
+  transition: background-color 0.25s ease, color 0.25s ease, transform 0.25s var(--ease);
+}
+.seg button:hover:not(.on) { background: rgba(38, 21, 21, 0.1); }
+.seg button.on { background: var(--dark); color: var(--light); }
+.seg button:focus-visible { outline: 2px solid var(--dark); outline-offset: 2px; }
+ 
+/* ---------- Stat tiles ---------- */
+.tiles {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 0.75rem;
+}
+.tile {
+  position: relative;
+  overflow: hidden;
+  display: flex;
+  flex-direction: column;
+  gap: 0.125rem;
+  padding: 0.75rem 0.875rem 0.75rem 1.125rem;
+  background: #fff;
+  border-radius: 0.875rem;
+  box-shadow: var(--shadow-sm);
+  transition: transform 0.25s var(--ease), box-shadow 0.25s ease;
+  animation: cardIn 0.6s var(--ease) both;
+}
+.tile:nth-child(2) { animation-delay: 0.05s; }
+.tile:nth-child(3) { animation-delay: 0.10s; }
+.tile:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 0.5rem 1.125rem rgba(38, 21, 21, 0.22);
+}
+.tile::before {
+  content: "";
+  position: absolute;
+  inset: 0 auto 0 0;
+  width: 4px;
+  background: var(--dark);
+}
+.tile:nth-child(2)::before { background: #e8c547; }
+.tile > span {
+  color: var(--gray);
+  font-size: 0.64rem;
+  font-weight: 700;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+}
+.tile > b { font-size: 1.4rem; line-height: 1.2; letter-spacing: -0.02em; }
+ 
+/* ---------- Tenant alerts ---------- */
+#tAlerts { display: flex; flex-direction: column; gap: 0.5rem; }
+#tAlerts:empty { display: none; }
+.pay-alert {
+  padding: 0.625rem 0.875rem;
+  background: #fbefc4;
+  color: var(--dark);
+  border-left: 4px solid #e8c547;
+  border-radius: 0.75rem;
+  font-size: 0.85rem;
+  box-shadow: var(--shadow-sm);
+}
+.pay-alert.bad { background: #f6d4d0; border-left-color: #a3261d; }
+.pay-alert.bad b { color: #a3261d; }
+ 
+/* ---------- Bill cards ---------- */
+main.page .cards {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(18rem, 1fr));
+  gap: 0.875rem;
+  margin: 0;
+}
+main.page .cards > .card {
+  display: flex;
+  flex-direction: column;
+  gap: 0.25rem;
+  padding: 1rem 1.125rem;
+  background: #fff;
+  border: 0;
+  border-radius: 1.125rem;
+  box-shadow: var(--shadow-md);
+  animation: cardIn 0.6s var(--ease) both;
+}
+main.page .cards > .card:hover { transform: none; box-shadow: var(--shadow-md); }
+main.page .card h3 { font-size: 1rem; font-weight: 700; }
+main.page .card .loc { color: var(--dark); font-size: 0.85rem; font-weight: 600; }
+main.page .card .meta { margin: 0; color: var(--gray); font-size: 0.8rem; }
+main.page .card .summary {
+  margin-top: 0.5rem;
+  padding: 0.625rem 0.875rem;
+  background: rgba(243, 228, 201, 0.35);
+  border-radius: 0.75rem;
+  font-size: 0.85rem;
+  line-height: 1.65;
+}
+main.page .card .summary strong { float: right; }
+main.page .card .actions {
+  margin-top: auto;
+  padding-top: 0.75rem;
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.5rem;
+}
+main.page .card .actions:empty { display: none; }
+ 
+.rule-note {
+  margin: 0.375rem 0 0;
+  padding: 0.375rem 0.625rem;
+  color: var(--gray);
+  border-left: 3px solid var(--line);
+  border-radius: 0.25rem;
+  font-size: 0.78rem;
+  line-height: 1.4;
+}
+.hint { margin: 0.25rem 0 0.5rem; color: var(--gray); font-size: 0.78rem; }
+ 
+/* ---------- Status badges ---------- */
+.badge.Paid, .badge.pay-verified { background: #d7ecd2; }
+.badge.Unpaid, .badge.pay-pending { background: #fbefc4; }
+.badge.Overdue, .badge.pay-rejected { background: #f6d4d0; color: #a3261d; }
+ 
+/* ---------- Payment history list inside a bill ---------- */
+.pay-list {
+  margin: 0.5rem 0 0;
+  padding: 0;
+  list-style: none;
+}
+.pay-list li {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 0.375rem 0.5rem;
+  padding: 0.5rem 0;
+  border-top: 1px dashed var(--line);
+  font-size: 0.8rem;
+}
+.pay-list li > span:first-child { flex: 1 1 12rem; min-width: 0; overflow-wrap: anywhere; }
+.pay-list em { flex: 1 1 100%; color: var(--gray); font-size: 0.78rem; }
+.link-btn:hover { color: var(--dark); }
+ 
+/* ---------- Panels (rules + create bill) ---------- */
+main.page .panel.wide-panel {
+  max-width: none;
+  margin: 0;
+  padding: 1.125rem;
+  background: var(--light);
+  border-radius: 1.125rem;
+  box-shadow: var(--shadow-md);
+  animation: cardIn 0.6s var(--ease) both;
+}
+.panel h3 {
+  margin: 0.75rem 0 0.25rem;
+  font-size: 0.95rem;
+  font-weight: 700;
+}
+.panel h3:first-child { margin-top: 0; }
+ 
+.set-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 1.5rem;
+  margin-top: 0.75rem;
+}
+.fee-row {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(9rem, 1fr));
+  gap: 0.625rem;
+}
+.bill-form {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 0.25rem 0.75rem;
+}
+ 
+/* labels + fields */
+main.page label,
+dialog label {
+  display: block;
+  margin: 0.625rem 0 0.25rem;
+  color: var(--gray);
+  font-size: 0.66rem;
+  font-weight: 700;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+}
+main.page .panel input:not([type="checkbox"]),
+main.page .panel select,
+dialog input:not([type="checkbox"]),
+dialog select {
+  width: 100%;
+  padding-top: 0.55rem;
+  padding-bottom: 0.55rem;
+  font-size: 0.9rem;
+}
+main.page .panel input:disabled { opacity: 0.55; cursor: not-allowed; }
+input[type="file"] { padding: 0.45rem 0.875rem; font-size: 0.82rem; }
+dialog input[type="file"] {
+  display: block;
+  width: fit-content;
+  max-width: 100%;
+  margin: 0 auto;
+}
+dialog input[type="file"]::file-selector-button {
+  margin-right: 0.625rem;
+  padding: 0.5rem 0.9rem;
+  background: var(--dark);
+  color: var(--light);
+  border: 1px solid var(--dark);
+  border-radius: 1.875rem;
+  font: inherit;
+  font-size: 0.85rem;
+  font-weight: 700;
+  cursor: pointer;
+  transition: background-color 0.25s ease, color 0.25s ease;
+}
+dialog input[type="file"]:hover::file-selector-button {
+  background: transparent;
+  color: var(--dark);
+}
+ 
+/* editable rows (recurring charges, payment methods) */
+.set-row {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  margin-bottom: 0.5rem;
+}
+.set-row input:not([type="checkbox"]) { flex: 1; min-width: 0; }
+.set-row .x-amt { flex: 0 0 6.5rem; }
+.set-row .m-name { flex: 0 0 7.5rem; }
+.set-row input[type="checkbox"] {
+  flex: none;
+  width: 1.1rem;
+  height: 1.1rem;
+  accent-color: var(--dark);
+  cursor: pointer;
+}
+.set-row .link-btn { flex: none; }
+ 
+.panel .ok { margin-top: 0.5rem; }
+.panel .error {
+  min-height: 1.2em;
+  margin-top: 0.5rem;
+  color: #a3261d;
+  font-size: 0.85rem;
+}
+ 
+/* ---------- Empty state (centered) ---------- */
+main.page .empty {
+  grid-column: 1 / -1;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 0.75rem;
+  min-height: 6rem;
+  margin: 0;
+  padding: 1.5rem 1rem;
+  text-align: center;
+  background: rgba(243, 228, 201, 0.94);
+  border-radius: 1.125rem;
+}
+main.page .empty p { margin: 0; }
+ 
+/* ==========================================================================
+   Buttons — same design as the dashboards (main.page and dialogs only)
+   ========================================================================== */
+:is(main.page, dialog) :is(a, button):is(.btn-primary, .btn-secondary) {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.375rem;
+  box-sizing: border-box;
+  width: auto;
+  margin-top: 0;
+  padding: 0.5rem 0.9rem;
+  background: var(--dark);
+  color: var(--light);
+  border: 1px solid var(--dark);
+  border-radius: 1.875rem;
+  font: inherit;
+  font-size: 0.85rem;
+  font-weight: 700;
+  line-height: 1.2;
+  text-align: center;
+  text-decoration: none;
+  white-space: nowrap;
+  cursor: pointer;
+  -webkit-appearance: none;
+  appearance: none;
+  transition: background-color 0.25s ease, color 0.25s ease,
+    transform 0.25s var(--ease), box-shadow 0.25s ease;
+}
+:is(main.page, dialog) .btn-secondary {
+  background: transparent;
+  color: var(--dark);
+}
+:is(main.page, dialog) .btn-primary:hover {
+  background: transparent;
+  color: var(--dark);
+}
+:is(main.page, dialog) .btn-secondary:hover {
+  background: var(--dark);
+  color: var(--light);
+}
+:is(main.page, dialog) :is(.btn-primary, .btn-secondary):hover {
+  transform: translateY(-2px);
+  box-shadow: 0 0.5rem 1.125rem rgba(38, 21, 21, 0.22);
+}
+:is(main.page, dialog) :is(.btn-primary, .btn-secondary):active {
+  transform: translateY(0) scale(0.98);
+  box-shadow: none;
+}
+:is(main.page, dialog) :is(.btn-primary, .btn-secondary):disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+  transform: none;
+  box-shadow: none;
+}
+:is(main.page, dialog) :is(.btn-primary, .btn-secondary):focus-visible {
+  outline: 2px solid var(--dark);
+  outline-offset: 3px;
+}
+/* small buttons inside bill cards: Pay now, Verify, Reject, Record cash, Delete */
+main.page .card :is(.btn-primary, .btn-secondary) {
+  padding: 0.35rem 0.8rem;
+  font-size: 0.78rem;
+}
+/* panel action buttons: Save rules, Create bill */
+main.page .panel > :is(.btn-primary, .btn-secondary) { margin-top: 1rem; }
+ 
+/* ---------- Dialogs ---------- */
+dialog {
+  width: min(23rem, 92vw);
+  padding: 1.25rem;
+  border-radius: 1.125rem;
+}
+dialog h2 { font-size: 1.1rem; }
+dialog .actions { display: flex; gap: 0.625rem; margin-top: 1rem; }
+dialog .actions :is(.btn-primary, .btn-secondary) { flex: 1; }
+dialog .hint { margin: 0.375rem 0 0; }
+dialog .error {
+  min-height: 1.2em;
+  margin-top: 0.5rem;
+  color: #a3261d;
+  font-size: 0.85rem;
+}
+#imgDlg { width: min(40rem, 94vw); }
+#imgDlg img {
+  display: block;
+  width: 100%;
+  max-height: 70vh;
+  object-fit: contain;
+  border-radius: 0.75rem;
+  background: #fff;
+}
+ 
+/* ---------- Motion preferences ---------- */
+@media (prefers-reduced-motion: reduce) {
+  .tile, main.page .cards > .card, main.page .panel.wide-panel { animation: none; }
+  .tile, .seg button,
+  :is(main.page, dialog) :is(.btn-primary, .btn-secondary) { transition: none; }
+}
+ 
+/* ---------- Tablet ---------- */
+@media (max-width: 960px) {
+  .set-grid { grid-template-columns: 1fr; gap: 1rem; }
+  .bill-form { grid-template-columns: 1fr 1fr; }
+}
+ 
+/* ---------- Mobile ---------- */
+@keyframes sheetUp {
+  from { transform: translateY(100%); }
+  to   { transform: none; }
+}
+@media (max-width: 760px) {
+  main.page { gap: 0.875rem; }
+  main.page input, main.page select, dialog input, dialog select { font-size: 1rem; }
+  .seg { align-self: stretch; }
+  .seg button { flex: 1; padding: 0.55rem 0.5rem; }
+  .tiles { grid-template-columns: 1fr 1fr; gap: 0.625rem; }
+  .tile { padding: 0.625rem 0.75rem 0.625rem 1rem; }
+  .tile > b { font-size: 1.15rem; }
+  main.page .cards { grid-template-columns: 1fr; }
+  .bill-form { grid-template-columns: 1fr; }
+  .set-row { flex-wrap: wrap; }
+  .set-row .x-amt, .set-row .m-name { flex: 1 1 8rem; }
+ 
+  dialog {
+    width: 100%;
+    max-width: none;
+    margin: auto 0 0;
+    padding: 1.125rem 1.125rem calc(1.125rem + env(safe-area-inset-bottom));
+    border-radius: 1.375rem 1.375rem 0 0;
+  }
+  dialog[open] { animation: sheetUp 0.35s var(--ease) both; }
+  main.page .card .actions :is(.btn-primary, .btn-secondary) { flex: 1; min-height: 2.5rem; }
+}
+@media (max-width: 420px) {
+  .tiles { grid-template-columns: 1fr; }
+}
+ 
+
+
+ /*tenant and landlord */
+
+ /* ==========================================================================
+   RentHub — Tenant & Landlord Dashboards (consolidated)
+   Load order:  style.css → pages.css → dashboard.css   (dashboard.css LAST)
+   Used by: tenant.html, landlord.html (add to payments.html too if it uses dialogs)
+   ========================================================================== */
+
+/* ---------- Layout ---------- */
+.dash #app {
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
+  max-width: 62rem;
+}
+.dash #app > .card {
+  padding: 1rem 1.125rem;
+  border-radius: 1.125rem;
+  box-shadow: var(--shadow-md);
+  animation: cardIn 0.6s var(--ease) both;
+}
+.dash #app > .card:hover { transform: none; box-shadow: var(--shadow-md); }
+.dash #app > section:nth-of-type(2) { animation-delay: 0.05s; }
+.dash #app > section:nth-of-type(3) { animation-delay: 0.10s; }
+.dash #app > section:nth-of-type(4) { animation-delay: 0.15s; }
+
+.bar-actions,
+.row-actions {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 0.5rem;
+}
+.row-actions { gap: 0.375rem; }
+
+/* ==========================================================================
+   Buttons — one design for <a> and <button>
+   ========================================================================== */
+:is(a, button):is(.btn, .btn-primary, .btn-secondary) {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.375rem;
+  box-sizing: border-box;
+  margin-top: 0;
+  padding: 0.5rem 0.9rem;
+  background: var(--dark);
+  color: var(--light);
+  border: 1px solid var(--dark);
+  border-radius: 1.875rem;
+  font: inherit;
+  font-size: 0.85rem;
+  font-weight: 700;
+  line-height: 1.2;
+  text-align: center;
+  text-decoration: none;
+  white-space: nowrap;
+  cursor: pointer;
+  -webkit-appearance: none;
+  appearance: none;
+  transition: background-color 0.25s ease, color 0.25s ease,
+    transform 0.25s var(--ease), box-shadow 0.25s ease;
+}
+:is(a, button):is(.btn-secondary, .btn.ghost) {
+  background: transparent;
+  color: var(--dark);
+}
+:is(a, button):is(.btn, .btn-primary):not(.ghost):hover {
+  background: transparent;
+  color: var(--dark);
+}
+:is(a, button):is(.btn-secondary, .btn.ghost):hover {
+  background: var(--dark);
+  color: var(--light);
+}
+:is(a, button):is(.btn, .btn-primary, .btn-secondary):hover {
+  transform: translateY(-2px);
+  box-shadow: 0 0.5rem 1.125rem rgba(38, 21, 21, 0.22);
+}
+:is(a, button):is(.btn, .btn-primary, .btn-secondary):active {
+  transform: translateY(0) scale(0.98);
+  box-shadow: none;
+}
+:is(a, button):is(.btn, .btn-primary, .btn-secondary):disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+  transform: none;
+  box-shadow: none;
+}
+:is(a, button):is(.btn, .btn-primary, .btn-secondary):focus-visible {
+  outline: 2px solid var(--dark);
+  outline-offset: 3px;
+}
+:is(a, button).sm:is(.btn, .btn-primary, .btn-secondary) {
+  width: auto;
+  padding: 0.35rem 0.8rem;
+  font-size: 0.78rem;
+}
+button.sm[data-act] { white-space: nowrap; }
+
+/* ---------- Welcome card ---------- */
+.card.hello {
+  display: flex;
+  flex-direction: row;
+  align-items: center;
+  gap: 1rem;
+  background: #fff;
+  color: var(--dark);
+}
+.card.hello > div:not(.avatar) { flex: 1; min-width: 0; }
+.card.hello h1 {
+  color: var(--dark);
+  text-shadow: none;
+  font-size: 1.25rem;
+  margin-bottom: 0.125rem;
+}
+.card.hello p { color: var(--gray); font-size: 0.82rem; }
+.card.hello dl {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.5rem 0;
+  margin: 0.5rem 0 0;
+}
+.card.hello dl > div {
+  min-width: 0;
+  padding: 0 0.875rem;
+  border-left: 1px solid var(--line);
+}
+.card.hello dl > div:first-child { padding-left: 0; border-left: 0; }
+.card.hello dt {
+  font-size: 0.62rem;
+  font-weight: 700;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: var(--gray);
+}
+.card.hello dd { margin: 0; font-size: 0.82rem; font-weight: 600; }
+.card.hello .edit {
+  width: auto;
+  margin-left: auto;
+  align-self: flex-start;
+  padding: 0.4rem 0.9rem;
+  font-size: 0.8rem;
+}
+
+.avatar {
+  flex: none;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 3.75rem;
+  height: 3.75rem;
+  border-radius: 50%;
+  overflow: hidden;
+  background: var(--dark);
+  color: var(--light);
+  font-size: 1.4rem;
+  font-weight: 700;
+  text-decoration: none;
+  border: 0.1875rem solid var(--line);
+  transition: transform 0.25s var(--ease), box-shadow 0.25s ease;
+}
+.avatar img { display: block; width: 100%; height: 100%; object-fit: cover; }
+.avatar svg { width: 2.1rem; height: 2.1rem; }
+.avatar:hover { transform: scale(1.04); box-shadow: var(--shadow-sm); }
+
+/* ---------- Stat tiles ---------- */
+.stats {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 0.75rem;
+}
+.stat {
+  position: relative;
+  overflow: hidden;
+  display: flex;
+  flex-direction: column;
+  gap: 0.125rem;
+  padding: 0.75rem 0.875rem 0.75rem 1.125rem;
+  background: #fff;
+  border-radius: 0.875rem;
+  box-shadow: var(--shadow-sm);
+  transition: transform 0.25s var(--ease), box-shadow 0.25s ease;
+  animation: cardIn 0.6s var(--ease) both;
+}
+.stat:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 0.5rem 1.125rem rgba(38, 21, 21, 0.22);
+}
+.stat::before {
+  content: "";
+  position: absolute;
+  inset: 0 auto 0 0;
+  width: 4px;
+  background: var(--dark);
+}
+.stat:nth-child(1) { animation-delay: 0.05s; }
+.stat:nth-child(2) { animation-delay: 0.10s; }
+.stat:nth-child(3) { animation-delay: 0.15s; }
+.stat:nth-child(4) { animation-delay: 0.20s; }
+.stat > span {
+  font-size: 0.64rem;
+  font-weight: 700;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  color: var(--gray);
+}
+.stat > b { font-size: 1.4rem; line-height: 1.2; letter-spacing: -0.02em; }
+.stat > small { font-size: 0.7rem; color: var(--gray); }
+
+#sPendingBox::before { background: #e8c547; }
+#sOverdueBox > b { color: var(--dark); }
+#sOverdueBox.owed > b { color: #a3261d; }
+#sOverdueBox.owed::before { background: #a3261d; }
+#sOverdueBox.bad,
+#sOverdueBox.overdue { background: #f6d5d1; }
+
+/* ---------- Section header bar ---------- */
+.bar {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  flex-wrap: wrap;
+  gap: 0.5rem;
+  margin-bottom: 0.75rem;
+}
+.bar h2 { font-size: 1rem; font-weight: 700; letter-spacing: -0.01em; }
+.bar .note { font-size: 0.75rem; color: var(--gray); }
+.note-sm { font-size: 0.8rem; color: var(--gray); }
+
+/* ---------- Inline filters (tenant tracker) ---------- */
+.filters-inline { display: flex; flex-wrap: wrap; gap: 0.5rem; }
+.filters-inline select {
+  width: auto;
+  min-width: 9rem;
+  padding-top: 0.45rem;
+  padding-bottom: 0.45rem;
+  font-size: 0.85rem;
+}
+.filters-inline input {
+  width: 11rem;
+  padding: 0.45rem 0.875rem;
+  border: 1px solid var(--line);
+  border-radius: 1.375rem;
+  background: #fff;
+  color: var(--dark);
+  font: inherit;
+  font-size: 0.85rem;
+  transition: border-color 0.2s ease, box-shadow 0.25s ease;
+}
+.filters-inline :is(input, select):hover { border-color: rgba(38, 21, 21, 0.35); }
+.filters-inline :is(input, select):focus {
+  outline: none;
+  border-color: var(--dark);
+  box-shadow: 0 0 0 0.25rem rgba(38, 21, 21, 0.14);
+}
+
+/* ---------- Tables ---------- */
+.tbl {
+  overflow: auto;
+  max-height: 18rem;
+  border: 1px solid var(--line);
+  border-radius: 0.75rem;
+  -webkit-overflow-scrolling: touch;
+}
+.tbl table {
+  width: 100%;
+  min-width: 44rem;
+  border-collapse: collapse;
+  font-size: 0.82rem;
+}
+/* narrow tables (4–6 columns) fill their card instead of leaving blank space */
+.tbl table:has(#tenantsBody) { min-width: 0; }
+.tbl table:has(#histBody) { min-width: 36rem; }
+
+.tbl th {
+  position: sticky;
+  top: 0;
+  z-index: 1;
+  padding: 0.5rem 0.75rem;
+  text-align: left;
+  white-space: nowrap;
+  background: var(--light);
+  color: var(--dark);
+  font-size: 0.66rem;
+  font-weight: 700;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+}
+.tbl td {
+  padding: 0.5rem 0.75rem;
+  vertical-align: middle;
+  border-top: 1px solid var(--line);
+}
+.tbl td:first-child { font-weight: 600; }
+.tbl tbody tr { transition: background-color 0.15s ease; }
+.tbl tbody tr:hover { background: rgba(243, 228, 201, 0.35); }
+.tbl td :is(a, button):is(.btn, .btn-primary, .btn-secondary) {
+  width: auto;
+  padding: 0.28rem 0.7rem;
+  font-size: 0.75rem;
+}
+
+/* ---------- Loading / empty states: always centered ---------- */
+.state-msg {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  min-height: 4rem;
+  padding: 1rem;
+  text-align: center;
+  color: var(--gray);
+}
+.state-msg.col { flex-direction: column; gap: 0.75rem; }
+/* loading/empty message inside the tenant property list (beats any old "#props > *" rule) */
+#props > .state-msg {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  width: 100%;
+  min-height: 4rem;
+  padding: 1rem;
+  background: none;
+  border: 0;
+  text-align: center;
+  color: var(--gray);
+}
+#props > .state-msg a { color: var(--dark); font-weight: 600; }
+.tbl td.empty,
+.tbl td[colspan] {
+  /* pages.css has "main.page .empty { display:flex }" which turns this <td>
+     into a flex box, so colspan is ignored and the text hugs the left.
+     Put it back to a real table cell so it spans the full row and centers. */
+  display: table-cell;
+  width: auto;
+  min-height: 0;
+  grid-column: auto;
+  margin: 0;
+  padding: 1.5rem 1rem;
+  text-align: center;
+  vertical-align: middle;
+  color: var(--gray);
+  font-weight: 400;
+  background: none;
+  border: 0;
+  border-top: 1px solid var(--line);
+  border-radius: 0;
+  box-shadow: none;
+}
+
+/* ---------- Status badges ---------- */
+.badge.Paid, .badge.paid, .badge.Verified, .badge.verified,
+.badge.Active, .badge.active { background: #d7ecd2; }
+.badge.Pending, .badge.pending,
+.badge.Unpaid, .badge.unpaid { background: #fbefc4; }
+.badge.Overdue, .badge.overdue { background: #f6d4d0; color: #a3261d; }
+.badge.Inactive, .badge.inactive { background: #e6e6e6; color: var(--gray); }
+
+/* ---------- Error text (dashboard pages) ---------- */
+.dash .error {
+  min-height: 1.2em;
+  margin: 0;
+  color: #a3261d;
+  font-size: 0.85rem;
+}
+
+/* ---------- Toast ---------- */
+#toast {
+  position: fixed;
+  left: 50%;
+  bottom: 1.75rem;
+  z-index: 500;
+  max-width: min(26rem, 90vw);
+  padding: 0.75rem 1.375rem;
+  background: var(--dark);
+  color: var(--light);
+  border-radius: 1.875rem;
+  font-size: 0.9rem;
+  font-weight: 600;
+  box-shadow: var(--shadow-lg);
+  opacity: 0;
+  pointer-events: none;
+  transform: translate(-50%, 0.75rem);
+  transition: opacity 0.25s ease, transform 0.3s var(--ease);
+}
+#toast.show { opacity: 1; transform: translate(-50%, 0); }
+
+/* ---------- Tenant: rental property cards ---------- */
+#props { display: flex; flex-direction: column; gap: 0.875rem; }
+.prop {
+  display: grid;
+  grid-template-columns: 9rem 1fr auto;
+  align-items: center;
+  gap: 1rem;
+  padding: 0.75rem;
+  border: 1px solid var(--line);
+  border-radius: 0.875rem;
+  background: rgba(243, 228, 201, 0.2);
+  transition: box-shadow 0.25s ease, background-color 0.25s ease;
+}
+.prop:hover { background: rgba(243, 228, 201, 0.35); box-shadow: var(--shadow-sm); }
+.prop .thumb {
+  position: relative;
+  display: grid;
+  place-items: center;
+  min-width: 0;
+  height: 6rem;
+  overflow: hidden;
+  border-radius: 0.75rem;
+  background: var(--light) center / cover;
+  color: var(--dark);
+  font-size: 2rem;
+}
+.prop .thumb img { position: absolute; inset: 0; display: block; width: 100%; height: 100%; object-fit: cover; border-radius: inherit; }
+.prop .thumb.initial { font-size: 2.25rem; font-weight: 700; }
+.prop h3 { font-size: 0.95rem; font-weight: 700; }
+.prop .price { margin-top: 0.25rem; font-size: 1.15rem; font-weight: 700; }
+.prop .price small { font-size: 0.85rem; font-weight: 400; color: var(--gray); }
+.prop .meta { margin-top: 0.125rem; }
+.prop .side { display: flex; flex-direction: column; align-items: flex-end; gap: 0.75rem; }
+#tenantList { display: flex; flex-direction: column; gap: 0.75rem; }
+
+/* landlord bar: title left, filters + buttons right */
+.landlord .bar .filters-inline { margin-left: auto; }
+
+/* ==========================================================================
+   Dialogs — single source of truth (add bill, add tenant, pay, image, billing)
+   ========================================================================== */
+@keyframes dialogIn {
+  from { opacity: 0; transform: translateY(1.375rem) scale(0.95); }
+  to   { opacity: 1; transform: none; }
+}
+@keyframes sheetUp {
+  from { transform: translateY(100%); }
+  to   { transform: none; }
+}
+
+dialog {
+  box-sizing: border-box;
+  width: min(26rem, 92vw);
+  max-height: 90vh;
+  overflow-y: auto;
+  margin: auto;
+  padding: 1.375rem;
+  border: 0;
+  border-radius: 1.375rem;
+  background: var(--light);
+  color: var(--dark);
+  box-shadow: var(--shadow-lg);
+}
+dialog[open] { animation: dialogIn 0.4s var(--ease) both; }
+dialog::backdrop {
+  background: rgba(38, 21, 21, 0.55);
+  backdrop-filter: blur(0.25rem);
+}
+dialog[open]::backdrop { animation: fadeIn 0.3s ease both; }
+
+dialog h2 {
+  margin: 0 0 0.25rem;
+  font-size: 1.1rem;
+  font-weight: 700;
+  letter-spacing: -0.01em;
+}
+dialog p.sub,
+dialog .dlg-note {
+  margin: 0 0 0.5rem;
+  color: var(--gray);
+  font-size: 0.85rem;
+}
+
+/* one gap rule instead of scattered margins */
+dialog form {
+  display: flex;
+  flex-direction: column;
+  gap: 0.75rem;
+  margin: 0;
+}
+dialog label {
+  display: flex;
+  flex-direction: column;
+  gap: 0.375rem;
+  margin: 0;
+  color: var(--gray);
+  font-size: 0.66rem;
+  font-weight: 700;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+}
+dialog :is(input, select, textarea):not([type="checkbox"]):not([type="radio"]) {
+  box-sizing: border-box;
+  width: 100%;
+  margin: 0;
+  padding: 0.6rem 1.125rem;
+  background: #fff;
+  color: var(--dark);
+  border: 1px solid var(--line);
+  border-radius: 1.875rem;
+  font: inherit;
+  font-size: 0.9rem;
+  font-weight: 400;
+  letter-spacing: 0;
+  text-transform: none;
+  transition: border-color 0.2s ease, box-shadow 0.25s ease;
+}
+dialog select { padding-right: 2.625rem; }
+dialog textarea { border-radius: 1.125rem; resize: vertical; }
+dialog :is(input, select, textarea):hover { border-color: rgba(38, 21, 21, 0.35); }
+dialog :is(input, select, textarea):focus {
+  outline: none;
+  border-color: var(--dark);
+  box-shadow: 0 0 0 0.25rem rgba(38, 21, 21, 0.14);
+}
+dialog input:disabled { opacity: 0.55; cursor: not-allowed; }
+dialog .hint { margin: 0; color: var(--gray); font-size: 0.78rem; }
+dialog .error {
+  min-height: 1.2em;
+  margin: 0;
+  color: #a3261d;
+  font-size: 0.85rem;
+}
+
+/* Cancel + Save: equal width, same spacing everywhere */
+dialog .actions {
+  display: flex;
+  flex-direction: row;
+  gap: 0.625rem;
+  margin-top: 0.25rem;
+}
+dialog .actions > * { flex: 1; width: auto; }
+
+/* image preview dialog */
+#imgDlg { width: min(40rem, 94vw); }
+#imgDlg img {
+  display: block;
+  width: 100%;
+  max-height: 70vh;
+  object-fit: contain;
+  border-radius: 0.75rem;
+  background: #fff;
+}
+
+/* ---------- Motion preferences ---------- */
+@media (prefers-reduced-motion: reduce) {
+  .dash #app > .card, .stat { animation: none; }
+  .stat, .avatar, .prop, #toast,
+  :is(a, button):is(.btn, .btn-primary, .btn-secondary),
+  dialog :is(input, select, textarea) { transition: none; }
+  dialog[open], dialog[open]::backdrop { animation: none; }
+}
+
+@media (max-width: 960px) {
+  .stats { grid-template-columns: repeat(2, 1fr); }
+  .prop { grid-template-columns: 1fr; }
+  .prop .thumb { height: 8rem; }
+  .prop .side { align-items: stretch; }
+}
+
+/* ---------- Mobile ---------- */
+@media (max-width: 760px) {
+  .dash #app { gap: 0.875rem; }
+  .dash #app > .card { padding: 0.875rem; }
+  .dash input, .dash select { font-size: 1rem; }
+
+  .card.hello { flex-direction: column; align-items: center; text-align: center; }
+  .card.hello .edit { width: 100%; margin-left: 0; align-self: stretch; }
+  .card.hello dl {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 0.75rem;
+    width: 100%;
+    text-align: left;
+  }
+  .card.hello dl > div {
+    padding: 0.5rem 0.75rem;
+    border: 0;
+    border-radius: 0.75rem;
+    background: rgba(243, 228, 201, 0.35);
+  }
+  .card.hello dd { overflow-wrap: anywhere; }
+
+  .stats { grid-template-columns: 1fr 1fr; gap: 0.625rem; }
+  .stat { padding: 0.625rem 0.75rem 0.625rem 1rem; }
+  .stat > span { font-size: 0.65rem; }
+  .stat > b { font-size: 1.15rem; }
+  .stat > small { font-size: 0.7rem; }
+
+  .bar { flex-direction: column; align-items: stretch; }
+  .bar > :is(a, button).sm { align-self: flex-start; }
+  .bar-actions { width: 100%; }
+  .bar-actions > :is(a, button),
+  .row-actions > :is(a, button) { flex: 1; min-height: 2.5rem; }
+
+  .filters-inline,
+  .filters-inline input,
+  .filters-inline select { width: 100%; }
+  .landlord .bar .filters-inline { margin-left: 0; }
+
+  .tbl { max-height: none; overflow: visible; border: 0; border-radius: 0; }
+  .tbl table, .tbl tbody, .tbl tr, .tbl td { display: block; width: 100%; min-width: 0; }
+  .tbl thead {
+    position: absolute;
+    width: 1px; height: 1px;
+    overflow: hidden;
+    clip: rect(0 0 0 0);
+  }
+  .tbl tbody tr {
+    margin-bottom: 0.5rem;
+    padding: 0.25rem 0.875rem;
+    background: rgba(243, 228, 201, 0.35);
+    border: 1px solid var(--line);
+    border-radius: 0.875rem;
+  }
+  .tbl td {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 1rem;
+    padding: 0.4rem 0;
+    text-align: right;
+    border-top: 1px dashed var(--line);
+  }
+  .tbl td::before {
+    flex: none;
+    text-align: left;
+    color: var(--gray);
+    font-size: 0.68rem;
+    font-weight: 700;
+    letter-spacing: 0.06em;
+    text-transform: uppercase;
+  }
+  .tbl td:first-child {
+    justify-content: flex-start;
+    padding: 0.625rem 0;
+    border-top: 0;
+    text-align: left;
+    font-size: 1rem;
+    font-weight: 700;
+  }
+  .tbl td:first-child::before { display: none; }
+  .tbl td:empty { display: none; }
+
+  .tbl tbody tr:has(td[colspan]) { padding: 0; background: none; border: 0; }
+  .tbl td.empty, .tbl td[colspan] {
+    display: flex;
+    flex-direction: row;
+    justify-content: center;
+    align-items: center;
+    padding: 2rem 1rem;
+    border: 0;
+    text-align: center;
+  }
+  .tbl td.empty::before, .tbl td[colspan]::before { display: none; }
+
+  #pendingBody td:nth-child(8),
+  #billsBody td:nth-child(8),
+  #trackBody td:nth-child(8) { justify-content: stretch; padding-bottom: 0.625rem; }
+  #pendingBody td:nth-child(8)::before,
+  #billsBody td:nth-child(8)::before,
+  #trackBody td:nth-child(8)::before { display: none; }
+  .row-actions { flex: 1; width: 100%; }
+  #trackBody td:nth-child(8) :is(a, button):is(.btn, .btn-primary) {
+    flex: 1;
+    min-height: 2.5rem;
+  }
+
+  #pendingBody td:nth-child(2)::before,
+  #billsBody td:nth-child(2)::before,
+  #histBody td:nth-child(2)::before { content: "Month"; }
+  #trackBody td:nth-child(2)::before { content: "Property"; }
+  #tenantsBody td:nth-child(2)::before { content: "Unit"; }
+  #tenantsBody td:nth-child(3)::before { content: "Monthly rent"; }
+  #histBody td:nth-child(3)::before { content: "Property"; }
+  #pendingBody td:nth-child(3)::before,
+  #billsBody td:nth-child(3)::before,
+  #trackBody td:nth-child(3)::before { content: "Total"; }
+  #histBody td:nth-child(4)::before { content: "Amount"; }
+  #pendingBody td:nth-child(4)::before,
+  #billsBody td:nth-child(4)::before,
+  #trackBody td:nth-child(4)::before { content: "Due date"; }
+  #tenantsBody td:nth-child(4)::before { content: "Status"; }
+  #pendingBody td:nth-child(5)::before,
+  #billsBody td:nth-child(5)::before,
+  #trackBody td:nth-child(5)::before { content: "Date paid"; }
+  #histBody td:nth-child(5)::before { content: "Reference"; }
+  #pendingBody td:nth-child(6)::before,
+  #billsBody td:nth-child(6)::before,
+  #trackBody td:nth-child(6)::before { content: "Reference"; }
+  #histBody td:nth-child(6)::before { content: "Verification"; }
+  #pendingBody td:nth-child(7)::before,
+  #billsBody td:nth-child(7)::before,
+  #trackBody td:nth-child(7)::before { content: "Status"; }
+
+ 
+  dialog {
+    width: 100%;
+    max-width: none;
+    margin: auto 0 0;
+    padding: 1.25rem 1.125rem calc(1.25rem + env(safe-area-inset-bottom));
+    border-radius: 1.375rem 1.375rem 0 0;
+  }
+  dialog[open] { animation: sheetUp 0.35s var(--ease) both; }
+  dialog :is(input, select, textarea) { font-size: 1rem; } /* stops iOS zoom */
+  dialog .actions > * { min-height: 2.5rem; }
+
+  #toast {
+    bottom: calc(1rem + env(safe-area-inset-bottom));
+    width: calc(100% - 2rem);
+    max-width: none;
+    text-align: center;
+    border-radius: 1rem;
+  }
+}
+
+@media (max-width: 420px) {
+  .stats { grid-template-columns: 1fr; }
+}
+
+ss addition · CSS
+/* Append to the end of pages.css — house icon beside "N homes found" */
+.count {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+}
+.count-icon {
+  flex: none;
+  width: 1.15em;
+  height: 1.15em;
 }

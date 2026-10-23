@@ -36,6 +36,10 @@
       <form id="f">
         <label for="email">EMAIL</label><input id="email" type="email" required autocomplete="email" />
         <label for="pw">PASSWORD</label><input id="pw" type="password" required autocomplete="current-password" />
+        <label class="remember-row" for="rememberMe">
+          <input id="rememberMe" type="checkbox" />
+          Remember me
+        </label>
         <p class="error" id="err"></p>
         <button class="btn-primary" type="submit">Log In</button>
       </form>
@@ -47,24 +51,76 @@
         <button class="btn-primary" type="submit">Verify and log in</button>
         <p class="alt"><a href="#" id="resend">Resend code</a> &middot; <a href="login.html">Start over</a></p>
       </form>
+
+      <form id="fp" hidden>
+        <label for="fpEmail">EMAIL</label>
+        <input id="fpEmail" type="email" required autocomplete="email" />
+        <p class="error" id="fpErr"></p>
+        <button class="btn-primary" type="submit">Send reset code</button>
+      </form>
+      <form id="fp2" hidden>
+        <p class="sub" id="fpCodeInfo"></p>
+        <label for="fpCode">6-DIGIT CODE</label>
+        <input id="fpCode" inputmode="numeric" pattern="[0-9]{6}" maxlength="6" autocomplete="one-time-code" required />
+        <p class="error" id="fpErr2"></p>
+        <button class="btn-primary" type="submit">Verify code</button>
+        <p class="alt"><a href="#" id="fpResend">Resend code</a> &middot; <a href="login.html">Start over</a></p>
+      </form>
+      <form id="fp3" hidden>
+        <label for="fpPw">NEW PASSWORD</label>
+        <input id="fpPw" type="password" minlength="8" required autocomplete="new-password" />
+        <label for="fpPw2">CONFIRM PASSWORD</label>
+        <input id="fpPw2" type="password" minlength="8" required autocomplete="new-password" />
+        <p class="error" id="fpErr3"></p>
+        <button class="btn-primary" type="submit">Update password</button>
+      </form>
+
+      <p class="alt" id="forgotWrap"><a href="#" id="forgotPw">Forgot password?</a></p>
       <p class="alt" id="newHere">New here? <a href="signup.html">Create an account</a></p>
     </div>
   </main>
-  <footer class="site-footer"><p>&copy; 2024 RentHub. All rights reserved.</p></footer>
+  <footer class="site-footer"><p>&copy; 2026 RentHub. All rights reserved.</p></footer>
   <script src="../js/script.js"></script>
   <script>
     const $ = id => document.getElementById(id);
     const goNext = () => location.href = new URLSearchParams(location.search).get("next") || "../index.html";
+    const remembered = RH.rememberedUser();
+    if (remembered && remembered.email) {
+      $("email").value = remembered.email;
+      $("pw").value = remembered.password || "";
+      $("rememberMe").checked = !!remembered.enabled;
+    }
+
+    const resetLoginView = () => {
+      $("f").hidden = false;
+      $("f2").hidden = true;
+      $("fp").hidden = true;
+      $("fp2").hidden = true;
+      $("fp3").hidden = true;
+      $("newHere").hidden = false;
+      $("forgotWrap").hidden = false;
+      document.querySelector(".search-card h1").textContent = "Welcome back";
+      $("err").textContent = "";
+      $("err2").textContent = "";
+      $("fpErr").textContent = "";
+      $("fpErr2").textContent = "";
+      $("fpErr3").textContent = "";
+    };
 
     // Step 1: email + password
     $("f").addEventListener("submit", async e => {
       e.preventDefault();
       $("err").textContent = "";
-      const res = await RH.login($("email").value, $("pw").value);
+      const email = $("email").value.trim();
+      const password = $("pw").value;
+      const remember = $("rememberMe").checked;
+      const res = await RH.login(email, password);
       if (res.error) { $("err").textContent = res.error; return; }
+      if (remember) RH.setRememberedUser(email, password, true);
+      else RH.clearRememberedUser();
       if (res.requires2fa) {
         // Swap to the code step
-        $("f").hidden = true; $("newHere").hidden = true; $("f2").hidden = false;
+        $("f").hidden = true; $("newHere").hidden = true; $("forgotWrap").hidden = true; $("f2").hidden = false;
         document.querySelector(".search-card h1").textContent = "Check your email";
         $("codeInfo").textContent = "We sent a 6-digit code to " + res.emailHint + ". It expires in 10 minutes.";
         $("code").focus();
@@ -87,6 +143,69 @@
       $("err2").textContent = "";
       const res = await RH.resend2fa();
       $("err2").textContent = res.error || res.message;
+    });
+
+    $("forgotPw").addEventListener("click", e => {
+      e.preventDefault();
+      $("f").hidden = true;
+      $("f2").hidden = true;
+      $("newHere").hidden = true;
+      $("forgotWrap").hidden = true;
+      $("fp").hidden = false;
+      $("fp2").hidden = true;
+      $("fp3").hidden = true;
+      document.querySelector(".search-card h1").textContent = "Reset your password";
+      $("fpErr").textContent = "";
+      $("fpEmail").focus();
+    });
+
+    $("fp").addEventListener("submit", async e => {
+      e.preventDefault();
+      $("fpErr").textContent = "";
+      const res = await RH.forgotPassword($("fpEmail").value);
+      if (res.error) { $("fpErr").textContent = res.error; return; }
+      $("fp").hidden = true;
+      $("fp2").hidden = false;
+      $("fpCodeInfo").textContent = "We sent a 6-digit code to " + res.emailHint + ". It expires in 10 minutes.";
+      $("fpCode").focus();
+    });
+
+    $("fp2").addEventListener("submit", async e => {
+      e.preventDefault();
+      $("fpErr2").textContent = "";
+      const res = await RH.verifyResetCode($("fpCode").value);
+      if (res.error) { $("fpErr2").textContent = res.error; return; }
+      $("fp2").hidden = true;
+      $("fp3").hidden = false;
+      $("fpPw").focus();
+    });
+
+    $("fpResend").addEventListener("click", async e => {
+      e.preventDefault();
+      $("fpErr2").textContent = "";
+      const res = await RH.resendResetCode();
+      $("fpErr2").textContent = res.error || res.message;
+    });
+
+    $("fp3").addEventListener("submit", async e => {
+      e.preventDefault();
+      $("fpErr3").textContent = "";
+      const pw = $("fpPw").value;
+      const pw2 = $("fpPw2").value;
+      if (pw.length < 8) { $("fpErr3").textContent = "Password must be at least 8 characters."; return; }
+      if (pw !== pw2) { $("fpErr3").textContent = "Passwords do not match."; return; }
+      const res = await RH.resetPassword(pw);
+      if (res.error) { $("fpErr3").textContent = res.error; return; }
+      goNext();
+    });
+
+    $("fp2").querySelector("a[href='login.html']").addEventListener("click", e => {
+      e.preventDefault();
+      resetLoginView();
+    });
+    $("f2").querySelector("a[href='login.html']").addEventListener("click", e => {
+      e.preventDefault();
+      resetLoginView();
     });
   </script>
 </body>
