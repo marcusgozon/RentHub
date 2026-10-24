@@ -1,9 +1,11 @@
 import hashlib
 import hmac
+import json
 import os
 import secrets
 import smtplib
 import ssl
+import urllib.request
 from datetime import datetime, timedelta
 from email.message import EmailMessage
 from pathlib import Path
@@ -23,7 +25,8 @@ load_dotenv(Path(__file__).resolve().parent.parent / ".env")
 # HARDCODED SETTINGS: edit the values here and the server works without any
 # .env file or terminal setup. A .env file / real environment variable, if you
 # ever set one, still takes priority over these.
-# WARNING: this file now contains secrets. Do NOT upload it to GitHub or share it.
+# All secrets come from environment variables (Render dashboard) or a local .env file.
+# Never hardcode real passwords or keys in this file.
 # ---------------------------------------------------------------------------
 HARDCODED = {
     # Gmail account that SENDS the 6-digit codes + its Google App Password
@@ -36,12 +39,12 @@ HARDCODED = {
     "DB_PASSWORD": os.getenv("DB_PASSWORD"),
     "DB_NAME": os.getenv("DB_NAME"),
     # Signs login sessions and hashes codes (keep it fixed so sessions survive restarts)
-    "RENTHUB_SECRET_KEY": "c3364d6362a625b705b01b88466c36f7ca28bb145ff0cabfd4dba5c796c0e053",
+    "RENTHUB_SECRET_KEY": os.getenv("RENTHUB_SECRET_KEY"),
 }
 
 def cfg(name, default=""):
     """Environment/.env value if set, otherwise the hardcoded value above."""
-    return os.getenv(name) or HARDCODED.get(name, default)
+    return os.getenv(name) or HARDCODED.get(name) or default
 
 # Only the frontend/ folder is served to the browser. Backend code, the database
 # schema, .env files and the README are never reachable through the web server.
@@ -62,6 +65,11 @@ IMAGE_SIGNATURES = (
 
 # Set these environment variables before running. Do not commit real passwords.
 app.secret_key = cfg("RENTHUB_SECRET_KEY")
+if not app.secret_key:
+    raise RuntimeError(
+        "RENTHUB_SECRET_KEY is not set. Add it as an environment variable "
+        "(Render -> Environment, or your local .env file)."
+    )
 app.config.update(
     SESSION_COOKIE_HTTPONLY=True,
     SESSION_COOKIE_SAMESITE="Lax",
@@ -125,16 +133,17 @@ def mask_email(email):
     return (name[:1] + "***@" + domain) if name else email
 
 def send_code_email(to_email, name, code, purpose="login"):
-    """Send the code through Gmail SMTP using an App Password from env variables."""
-    sender = cfg("GMAIL_USER").strip()
+    """Send the code by email.
+
+    Production (Render free tier blocks SMTP): uses Brevo's HTTPS API when
+    BREVO_API_KEY is set. Local development: falls back to Gmail SMTP with an App Password.
+    """
+    brevo_key = cfg("BREVO_API_KEY").strip()
+    sender = (cfg("MAIL_FROM") or cfg("GMAIL_USER")).strip()
     app_password = cfg("GMAIL_APP_PASSWORD").replace(" ", "")
-    if not sender or not app_password:
+    if not sender or not (brevo_key or app_password):
         raise EmailNotConfigured()
 
-    msg = EmailMessage()
-    msg["Subject"] = f"Your RentHub verification code: {code}"
-    msg["From"] = f"RentHub <{sender}>"
-    msg["To"] = to_email
     minutes = int(CODE_TTL.total_seconds() // 60)
     if purpose == "signup":
         intro = "Welcome to RentHub! Use this code to finish creating your account."
@@ -145,11 +154,47 @@ def send_code_email(to_email, name, code, purpose="login"):
     else:
         intro = "Use this code to finish logging in."
         outro = "If you did not try to log in, ignore this email and consider changing your password."
-    msg.set_content(
+    subject = f"Your RentHub verification code: {code}"
+    body = (
         f"Hi {name},\n\n{intro}\n\n"
         f"Your RentHub verification code is: {code}\n\n"
         f"It expires in {minutes} minutes. {outro}\n\n- RentHub"
     )
+
+    if brevo_key:
+        # HTTPS (port 443) is not blocked on Render's free tier, unlike SMTP.
+        payload = json.dumps({
+            "sender": {"name": "RentHub", "email": sender},
+            "to": [{"email": to_email, "name": name}],
+            "subject": subject,
+            "textContent": body,
+        }).encode("utf-8")
+        req = urllib.request.Request(
+            "https://api.brevo.com/v3/smtp/email",
+            data=payload,
+            method="POST",
+            headers={
+                "api-key": brevo_key,
+                "content-type": "application/json",
+                "accept": "application/json",
+            },
+        )
+        try:
+            with urllib.request.urlopen(req, timeout=15):
+                pass
+        except urllib.error.HTTPError as exc:
+            # Log Brevo's explanation (e.g. unverified sender, bad key) in the Render logs.
+            detail = exc.read().decode("utf-8", "replace")[:500]
+            app.logger.error("Brevo rejected the email (HTTP %s): %s", exc.code, detail)
+            raise
+        return
+
+    # Local fallback: Gmail SMTP (blocked on Render's free tier).
+    msg = EmailMessage()
+    msg["Subject"] = subject
+    msg["From"] = f"RentHub <{sender}>"
+    msg["To"] = to_email
+    msg.set_content(body)
     with smtplib.SMTP_SSL("smtp.gmail.com", 465, context=ssl.create_default_context(), timeout=15) as smtp:
         smtp.login(sender, app_password)
         smtp.send_message(msg)
@@ -228,9 +273,9 @@ def db_error_response(exc):
 
 def email_error_response(exc):
     if isinstance(exc, EmailNotConfigured):
-        return jsonify({"error": "Email sending is not set up. Set GMAIL_USER and GMAIL_APP_PASSWORD, then restart the server."}), 500
+        return jsonify({"error": "Email sending is not set up. Set BREVO_API_KEY and MAIL_FROM (or GMAIL_USER and GMAIL_APP_PASSWORD for local use), then restart the server."}), 500
     app.logger.exception("Could not send verification email")
-    return jsonify({"error": "We couldn't send the verification email. Check the Gmail address and app password."}), 502
+    return jsonify({"error": "We couldn't send the verification email. Please try again in a moment."}), 502
 
 def finish_login(user):
     session.clear()
