@@ -30,11 +30,11 @@ HARDCODED = {
     "GMAIL_USER": "marcusgozon9303@gmail.com",
     "GMAIL_APP_PASSWORD": "lzhr zznj wmtv nebj",
     # MySQL
-    "DB_HOST": "localhost",
-    "DB_PORT": "3306",
-    "DB_USER": "root",
-    "DB_PASSWORD": "admin",
-    "DB_NAME": "renthub_db",
+    "DB_HOST": os.getenv("DB_HOST"),
+    "DB_PORT": os.getenv("DB_PORT"),
+    "DB_USER": os.getenv("DB_USER"),
+    "DB_PASSWORD": os.getenv("DB_PASSWORD"),
+    "DB_NAME": os.getenv("DB_NAME"),
     # Signs login sessions and hashes codes (keep it fixed so sessions survive restarts)
     "RENTHUB_SECRET_KEY": "c3364d6362a625b705b01b88466c36f7ca28bb145ff0cabfd4dba5c796c0e053",
 }
