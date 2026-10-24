@@ -27,8 +27,8 @@ load_dotenv(Path(__file__).resolve().parent.parent / ".env")
 # ---------------------------------------------------------------------------
 HARDCODED = {
     # Gmail account that SENDS the 6-digit codes + its Google App Password
-    "GMAIL_USER": "marcusgozon9303@gmail.com",
-    "GMAIL_APP_PASSWORD": "lzhr zznj wmtv nebj",
+    "GMAIL_USER": os.getenv("GMAIL_USER"),
+    "GMAIL_APP_PASSWORD": os.getenv("GMAIL_APP_PASSWORD"),
     # MySQL
     "DB_HOST": os.getenv("DB_HOST"),
     "DB_PORT": os.getenv("DB_PORT"),
